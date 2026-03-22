@@ -70,10 +70,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     show_review_date: bool(formData.get("show_review_date")),
     show_rating_breakdown: bool(formData.get("show_rating_breakdown")),
     show_write_review_btn: bool(formData.get("show_write_review_btn")),
-    write_review_label: String(formData.get("write_review_label") || "Write a review"),
+    write_review_label: String(formData.get("write_review_label") || "Értékelés írása"),
     section_heading: String(formData.get("section_heading") || ""),
-    empty_state_text: String(formData.get("empty_state_text") || "No reviews yet"),
-    verified_badge_label: String(formData.get("verified_badge_label") || "Verified"),
+    empty_state_text: String(formData.get("empty_state_text") || "Még nincsenek értékelések"),
+    verified_badge_label: String(formData.get("verified_badge_label") || "Ellenőrzött"),
     verified_badge_color: String(formData.get("verified_badge_color") || "#eef2ff"),
     verified_badge_text_color: String(formData.get("verified_badge_text_color") || "#4f46e5"),
     summary_star_size_px: num(formData.get("summary_star_size_px"), 15, 10, 28),
@@ -81,7 +81,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     write_review_btn_font_size_px: num(formData.get("write_review_btn_font_size_px"), 14, 10, 28),
     breakdown_caret_size_px: num(formData.get("breakdown_caret_size_px"), 14, 8, 40),
     show_review_count: bool(formData.get("show_review_count")),
-    review_count_label: String(formData.get("review_count_label") || "Reviews"),
+    review_count_label: String(formData.get("review_count_label") || "vélemény"),
     heading_weight: num(formData.get("heading_weight"), 700, 100, 900),
     summary_rating_weight: num(formData.get("summary_rating_weight"), 700, 100, 900),
     summary_count_weight: num(formData.get("summary_count_weight"), 500, 100, 900),
@@ -95,21 +95,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     modal_title_weight: num(formData.get("modal_title_weight"), 700, 100, 900),
     modal_label_weight: num(formData.get("modal_label_weight"), 600, 100, 900),
     input_weight: num(formData.get("input_weight"), 400, 100, 900),
-    modal_title: String(formData.get("modal_title") || "Write a review"),
-    modal_subtitle: String(formData.get("modal_subtitle") || "Share your experience with this product"),
-    modal_name_label: String(formData.get("modal_name_label") || "Your name"),
+    modal_title: String(formData.get("modal_title") || "Írj értékelést"),
+    modal_subtitle: String(formData.get("modal_subtitle") || "Oszd meg a tapasztalatod erről a termékről"),
+    modal_name_label: String(formData.get("modal_name_label") || "Neved"),
     modal_rating_label: String(formData.get("modal_rating_label") || "Rating"),
-    modal_review_title_label: String(formData.get("modal_review_title_label") || "Review title"),
+    modal_review_title_label: String(formData.get("modal_review_title_label") || "Értékelés címe"),
     modal_review_body_label: String(formData.get("modal_review_body_label") || "Review"),
     modal_image_label: String(formData.get("modal_image_label") || "Images (optional)"),
-    modal_submit_label: String(formData.get("modal_submit_label") || "Submit review"),
+    modal_submit_label: String(formData.get("modal_submit_label") || "Értékelés beküldése"),
     modal_success_message: String(formData.get("modal_success_message") || "Thanks! Your review was submitted for moderation."),
-    modal_error_message: String(formData.get("modal_error_message") || "Failed to submit review"),
-    modal_close_label: String(formData.get("modal_close_label") || "Close"),
-    modal_image_helper_text: String(formData.get("modal_image_helper_text") || "You can upload up to 5 images"),
+    modal_error_message: String(formData.get("modal_error_message") || "Nem sikerült elküldeni az értékelést"),
+    modal_close_label: String(formData.get("modal_close_label") || "Bezárás"),
+    modal_image_helper_text: String(formData.get("modal_image_helper_text") || "Legfeljebb 5 képet tölthetsz fel"),
     initial_reviews_limit: num(formData.get("initial_reviews_limit"), 20, 1, 100),
     load_more_step: num(formData.get("load_more_step"), 20, 1, 100),
-    load_more_label: String(formData.get("load_more_label") || "Load more reviews"),
+    load_more_label: String(formData.get("load_more_label") || "További értékelések"),
     default_sort_mode: String(formData.get("default_sort_mode") || "image_first"),
   });
 
@@ -256,7 +256,7 @@ export default function WidgetSettingsPage() {
               <InlineStack gap="300" wrap>
                 <label><Text as="span" variant="bodySm">Initial reviews limit</Text><input name="initial_reviews_limit" type="number" min={1} max={100} defaultValue={settings.initial_reviews_limit ?? 20} /></label>
                 <label><Text as="span" variant="bodySm">Load more step</Text><input name="load_more_step" type="number" min={1} max={100} defaultValue={settings.load_more_step ?? 20} /></label>
-                <label><Text as="span" variant="bodySm">Load more button label</Text><input name="load_more_label" defaultValue={settings.load_more_label || "Load more reviews"} /></label>
+                <label><Text as="span" variant="bodySm">Load more button label</Text><input name="load_more_label" defaultValue={settings.load_more_label || "További értékelések"} /></label>
                 <div>
                   <Text as="p" variant="bodySm">Default sort mode</Text>
                   <select name="default_sort_mode" defaultValue={settings.default_sort_mode || "image_first"}>
@@ -277,7 +277,7 @@ export default function WidgetSettingsPage() {
               <InlineStack gap="300" wrap>
                 <label><Text as="span" variant="bodySm">Section heading</Text><input name="section_heading" defaultValue={settings.section_heading} /></label>
                 <label><Text as="span" variant="bodySm">Write review button label</Text><input name="write_review_label" defaultValue={settings.write_review_label} /></label>
-                <label><Text as="span" variant="bodySm">Review count label (e.g. Reviews)</Text><input name="review_count_label" defaultValue={settings.review_count_label || "Reviews"} /></label>
+                <label><Text as="span" variant="bodySm">Review count label (e.g. vélemény)</Text><input name="review_count_label" defaultValue={settings.review_count_label || "vélemény"} /></label>
                 <label><Text as="span" variant="bodySm">Empty state text</Text><input name="empty_state_text" defaultValue={settings.empty_state_text} /></label>
                 <label><Text as="span" variant="bodySm">Verified badge label</Text><input name="verified_badge_label" defaultValue={settings.verified_badge_label} /></label>
               </InlineStack>
@@ -288,18 +288,18 @@ export default function WidgetSettingsPage() {
             <BlockStack gap="300">
               <Text as="h3" variant="headingSm">Write-review modal copy</Text>
               <InlineStack gap="300" wrap>
-                <label><Text as="span" variant="bodySm">Modal title</Text><input name="modal_title" defaultValue={settings.modal_title || "Write a review"} /></label>
-                <label><Text as="span" variant="bodySm">Modal subtitle</Text><input name="modal_subtitle" defaultValue={settings.modal_subtitle || "Share your experience with this product"} /></label>
-                <label><Text as="span" variant="bodySm">Name label</Text><input name="modal_name_label" defaultValue={settings.modal_name_label || "Your name"} /></label>
+                <label><Text as="span" variant="bodySm">Modal title</Text><input name="modal_title" defaultValue={settings.modal_title || "Írj értékelést"} /></label>
+                <label><Text as="span" variant="bodySm">Modal subtitle</Text><input name="modal_subtitle" defaultValue={settings.modal_subtitle || "Oszd meg a tapasztalatod erről a termékről"} /></label>
+                <label><Text as="span" variant="bodySm">Name label</Text><input name="modal_name_label" defaultValue={settings.modal_name_label || "Neved"} /></label>
                 <label><Text as="span" variant="bodySm">Rating label</Text><input name="modal_rating_label" defaultValue={settings.modal_rating_label || "Rating"} /></label>
-                <label><Text as="span" variant="bodySm">Review title label</Text><input name="modal_review_title_label" defaultValue={settings.modal_review_title_label || "Review title"} /></label>
+                <label><Text as="span" variant="bodySm">Review title label</Text><input name="modal_review_title_label" defaultValue={settings.modal_review_title_label || "Értékelés címe"} /></label>
                 <label><Text as="span" variant="bodySm">Review body label</Text><input name="modal_review_body_label" defaultValue={settings.modal_review_body_label || "Review"} /></label>
                 <label><Text as="span" variant="bodySm">Image label</Text><input name="modal_image_label" defaultValue={settings.modal_image_label || "Images (optional)"} /></label>
-                <label><Text as="span" variant="bodySm">Image helper text</Text><input name="modal_image_helper_text" defaultValue={settings.modal_image_helper_text || "You can upload up to 5 images"} /></label>
-                <label><Text as="span" variant="bodySm">Submit button label</Text><input name="modal_submit_label" defaultValue={settings.modal_submit_label || "Submit review"} /></label>
+                <label><Text as="span" variant="bodySm">Image helper text</Text><input name="modal_image_helper_text" defaultValue={settings.modal_image_helper_text || "Legfeljebb 5 képet tölthetsz fel"} /></label>
+                <label><Text as="span" variant="bodySm">Submit button label</Text><input name="modal_submit_label" defaultValue={settings.modal_submit_label || "Értékelés beküldése"} /></label>
                 <label><Text as="span" variant="bodySm">Success message</Text><input name="modal_success_message" defaultValue={settings.modal_success_message || "Thanks! Your review was submitted for moderation."} /></label>
-                <label><Text as="span" variant="bodySm">Error message</Text><input name="modal_error_message" defaultValue={settings.modal_error_message || "Failed to submit review"} /></label>
-                <label><Text as="span" variant="bodySm">Close label</Text><input name="modal_close_label" defaultValue={settings.modal_close_label || "Close"} /></label>
+                <label><Text as="span" variant="bodySm">Error message</Text><input name="modal_error_message" defaultValue={settings.modal_error_message || "Nem sikerült elküldeni az értékelést"} /></label>
+                <label><Text as="span" variant="bodySm">Close label</Text><input name="modal_close_label" defaultValue={settings.modal_close_label || "Bezárás"} /></label>
               </InlineStack>
             </BlockStack>
           </Card>

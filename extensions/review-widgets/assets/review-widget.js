@@ -109,7 +109,7 @@
       };
       const initialLimit = toPositiveInt(data?.pagination?.configured_initial_limit, toPositiveInt(settings.initial_reviews_limit, 20));
       const loadMoreStep = toPositiveInt(data?.pagination?.configured_load_more_step, toPositiveInt(settings.load_more_step, 20));
-      const loadMoreLabel = String(settings.load_more_label || 'Load more reviews');
+      const loadMoreLabel = String(settings.load_more_label || 'További értékelések');
       let visibleCount = initialLimit;
       let currentOffset = Number(data?.pagination?.next_offset || reviews.length || 0);
       let hasMore = Boolean(data?.pagination?.has_more);
@@ -177,7 +177,7 @@
           <div class="oc-rw-card-body">
             <div class="oc-rw-reviewer-row">
               <span class="oc-rw-reviewer-name">${r.reviewer_name || 'Anonymous'}</span>
-              ${(settings.show_verified_badge ? `<span class="oc-rw-verified"><span class="oc-rw-verified-icon">✓</span>${settings.verified_badge_label || 'Verified'}</span>` : '')}
+              ${(settings.show_verified_badge ? `<span class="oc-rw-verified"><span class="oc-rw-verified-icon">✓</span>${settings.verified_badge_label || 'Ellenőrzött'}</span>` : '')}
             </div>
             <div class="oc-rw-meta-row">
               <span class="oc-rw-stars">${stars(Number(r.rating || 0))}</span>
@@ -200,12 +200,12 @@
               <div class="oc-rw-summary-left">
                 <span class="oc-rw-stars" style="font-size:${summaryStarSize}px;">${stars(average)}</span>
                 <span class="oc-rw-rating" style="font-size:${summaryTextSize}px;">${average.toFixed(1)}</span>
-                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} ${(settings.review_count_label || 'Reviews').trim() || 'Reviews'}</span>` : ''}
+                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} ${(settings.review_count_label || 'vélemény').trim() || 'vélemény'}</span>` : ''}
                 ${settings.show_rating_breakdown ? `<button class="oc-rw-caret-btn" data-toggle="${id}" aria-label="Toggle breakdown">▾</button>` : ''}
               </div>
               <button class="oc-rw-icon-btn" aria-label="Filters">⚙</button>
             </div>
-            ${settings.show_write_review_btn ? `<div class="oc-rw-summary-bottom"><button class="oc-rw-btn" type="button" data-open-review-modal="1">${settings.write_review_label || 'Write a review'}</button></div>` : ''}
+            ${settings.show_write_review_btn ? `<div class="oc-rw-summary-bottom"><button class="oc-rw-btn" type="button" data-open-review-modal="1">${settings.write_review_label || 'Értékelés írása'}</button></div>` : ''}
           </div>
 
           ${settings.show_rating_breakdown ? `
@@ -214,19 +214,19 @@
                 <div>
                   <div class="oc-rw-break-average">${average.toFixed(1)}</div>
                   <div class="oc-rw-stars" style="text-align:center;">${stars(average)}</div>
-                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} ${(settings.review_count_label || 'Reviews').trim() || 'Reviews'}</div>` : ''}
+                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} ${(settings.review_count_label || 'vélemény').trim() || 'vélemény'}</div>` : ''}
                 </div>
                 <div class="oc-rw-break-lines">${breakdownHtml}</div>
               </div>
             </div>
           ` : ''}
 
-          ${reviews.length ? `<div class="oc-rw-grid" data-rw-grid>${renderCardsHtml()}</div><div data-rw-load-more-wrap></div>` : `<div class="oc-rw-empty">${settings.empty_state_text || 'No reviews yet'}</div>`}
+          ${reviews.length ? `<div class="oc-rw-grid" data-rw-grid>${renderCardsHtml()}</div><div data-rw-load-more-wrap></div>` : `<div class="oc-rw-empty">${settings.empty_state_text || 'Még nincsenek értékelések'}</div>`}
 
           <div class="oc-rw-lightbox" data-rw-lightbox hidden>
             <div class="oc-rw-lightbox-backdrop" data-rw-close-lightbox></div>
             <div class="oc-rw-lightbox-panel">
-              <button type="button" class="oc-rw-lightbox-close" data-rw-close-lightbox aria-label="Close">✕</button>
+              <button type="button" class="oc-rw-lightbox-close" data-rw-close-lightbox aria-label="Bezárás">✕</button>
               <div class="oc-rw-lightbox-grid">
                 <div>
                   <div class="oc-rw-lightbox-main-wrap">
@@ -245,8 +245,8 @@
             <div class="oc-rw-modal-backdrop" data-close-review-modal></div>
             <div class="oc-rw-modal-panel">
               <div class="oc-rw-modal-head">
-                <strong>${settings.modal_title || 'Write a review'}</strong>
-                <button type="button" class="oc-rw-icon-btn" data-close-review-modal aria-label="${settings.modal_close_label || 'Close'}">✕</button>
+                <strong>${settings.modal_title || 'Írj értékelést'}</strong>
+                <button type="button" class="oc-rw-icon-btn" data-close-review-modal aria-label="${settings.modal_close_label || 'Bezárás'}">✕</button>
               </div>
               <div class="oc-rw-modal-subtitle">${settings.modal_subtitle || ''}</div>
               <form class="oc-rw-form" data-review-form>
@@ -258,8 +258,8 @@
                   <input type="hidden" name="rating" value="" required data-rating-value />
                 </div>
 
-                <label class="oc-rw-form-block">${settings.modal_name_label || 'Your name'}<input name="reviewer_name" required /></label>
-                <label class="oc-rw-form-block">${settings.modal_review_title_label || 'Review title'}<input name="title" /></label>
+                <label class="oc-rw-form-block">${settings.modal_name_label || 'Neved'}<input name="reviewer_name" required /></label>
+                <label class="oc-rw-form-block">${settings.modal_review_title_label || 'Értékelés címe'}<input name="title" /></label>
                 <label class="oc-rw-form-block">${settings.modal_review_body_label || 'Review'}<textarea name="body" rows="4" required></textarea></label>
                 <label class="oc-rw-form-block">${settings.modal_image_label || 'Images (optional)'}<input name="images" type="file" accept="image/*" multiple data-image-input /></label>
                 <div class="oc-rw-form-help">${settings.modal_image_helper_text || ''}</div>
@@ -269,7 +269,7 @@
                 </div>
                 <div class="oc-rw-form-error" data-form-error hidden></div>
                 <div class="oc-rw-form-success" data-form-success hidden>${settings.modal_success_message || 'Thanks! Your review was submitted for moderation.'}</div>
-                <button type="submit" class="oc-rw-btn" data-submit-btn>${settings.modal_submit_label || 'Submit review'}</button>
+                <button type="submit" class="oc-rw-btn" data-submit-btn>${settings.modal_submit_label || 'Értékelés beküldése'}</button>
               </form>
             </div>
           </div>
@@ -465,7 +465,7 @@
           detailsEl.innerHTML = `
             <div class="oc-rw-reviewer-row">
               <span class="oc-rw-reviewer-name">${review.reviewer_name || 'Anonymous'}</span>
-              ${(settings.show_verified_badge ? `<span class="oc-rw-verified"><span class="oc-rw-verified-icon">✓</span>${settings.verified_badge_label || 'Verified'}</span>` : '')}
+              ${(settings.show_verified_badge ? `<span class="oc-rw-verified"><span class="oc-rw-verified-icon">✓</span>${settings.verified_badge_label || 'Ellenőrzött'}</span>` : '')}
             </div>
             <div class="oc-rw-meta-row">
               <span class="oc-rw-stars">${stars(Number(review.rating || 0))}</span>
@@ -564,10 +564,10 @@
           } catch (err) {
             if (errorEl) {
               errorEl.hidden = false;
-              errorEl.textContent = (err && err.message) ? err.message : (settings.modal_error_message || 'Failed to submit review');
+              errorEl.textContent = (err && err.message) ? err.message : (settings.modal_error_message || 'Nem sikerült elküldeni az értékelést');
             }
           } finally {
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = settings.modal_submit_label || 'Submit review'; }
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = settings.modal_submit_label || 'Értékelés beküldése'; }
           }
         });
       }
