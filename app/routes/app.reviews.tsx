@@ -431,7 +431,7 @@ export default function ReviewsPage() {
 
         <Card>
           <BlockStack gap="200">
-            <Text as="p" variant="bodyMd">Bulk actions (reliable mode: check rows then run)</Text>
+            <Text as="p" variant="bodyMd">Bulk actions (native checkbox mode: tick row checkboxes, then run)</Text>
             <Form method="post" action={postActionUrl} id="bulk-fallback-form">
               <InlineStack gap="200" wrap>
                 <select name="intent" defaultValue="bulk_publish" style={{ padding: 8 }}>
@@ -500,8 +500,6 @@ export default function ReviewsPage() {
                         name="review_ids"
                         value={review.id}
                         form="bulk-fallback-form"
-                        checked={selectedIds.includes(review.id)}
-                        readOnly
                       />
                       <a
                         href={withSelected(
