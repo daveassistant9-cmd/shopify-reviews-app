@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useNavigation, Form, useSearchParams } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useNavigation, Form, useLocation, useSearchParams } from "@remix-run/react";
 import { useState } from "react";
 import {
   Badge,
@@ -228,8 +228,16 @@ const badgeTone = (status: ReviewStatus): "success" | "attention" | "info" => {
 export default function ReviewsPage() {
   const { reviews, aggregateByProduct, filters, adminProductBase } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigation = useNavigation();
   const busy = navigation.state !== "idle";
+
+  const keepEmbeddedParams = (path: string) => {
+    const current = new URLSearchParams(location.search);
+    ["product_gid", "product_text", "rating", "status"].forEach((k) => current.delete(k));
+    const q = current.toString();
+    return q ? `${path}?${q}` : path;
+  };
 
   const hasFilters =
     !!(filters.productGid || filters.productText || filters.rating || filters.status || searchParams.toString());
@@ -299,7 +307,11 @@ export default function ReviewsPage() {
                   </label>
                 </InlineStack>
                 <InlineStack align="end" gap="200">
-                  {hasFilters && <a href="/app/reviews" style={{ alignSelf: "center" }}>Clear</a>}
+                  {hasFilters && (
+                    <Link to={keepEmbeddedParams("/app/reviews")} style={{ alignSelf: "center" }}>
+                      Clear
+                    </Link>
+                  )}
                   <Button submit variant="primary" loading={busy}>Apply filters</Button>
                 </InlineStack>
               </BlockStack>
@@ -356,7 +368,7 @@ export default function ReviewsPage() {
                     </InlineStack>
                     <InlineStack gap="150" wrap>
                       <Link
-                        to={`/app/reviews/${review.id}/edit`}
+                        to={`${keepEmbeddedParams(`/app/reviews/${review.id}/edit`)}`}
                         style={{
                           display: "inline-block",
                           padding: "6px 10px",

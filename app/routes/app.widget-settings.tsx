@@ -71,14 +71,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     show_rating_breakdown: bool(formData.get("show_rating_breakdown")),
     show_write_review_btn: bool(formData.get("show_write_review_btn")),
     write_review_label: String(formData.get("write_review_label") || "Write a review"),
-    section_heading: String(formData.get("section_heading") || "Customer reviews"),
+    section_heading: String(formData.get("section_heading") || ""),
     empty_state_text: String(formData.get("empty_state_text") || "No reviews yet"),
     verified_badge_label: String(formData.get("verified_badge_label") || "Verified"),
     verified_badge_color: String(formData.get("verified_badge_color") || "#eef2ff"),
     verified_badge_text_color: String(formData.get("verified_badge_text_color") || "#4f46e5"),
     summary_star_size_px: num(formData.get("summary_star_size_px"), 15, 10, 28),
     summary_text_size_px: num(formData.get("summary_text_size_px"), 14, 10, 28),
+    write_review_btn_font_size_px: num(formData.get("write_review_btn_font_size_px"), 14, 10, 28),
     show_review_count: bool(formData.get("show_review_count")),
+    review_count_label: String(formData.get("review_count_label") || "Reviews"),
     modal_title: String(formData.get("modal_title") || "Write a review"),
     modal_subtitle: String(formData.get("modal_subtitle") || "Share your experience with this product"),
     modal_name_label: String(formData.get("modal_name_label") || "Your name"),
@@ -149,6 +151,7 @@ export default function WidgetSettingsPage() {
                 <label><Text as="span" variant="bodySm">Meta size</Text><input name="meta_size_px" type="number" defaultValue={settings.meta_size_px} /></label>
                 <label><Text as="span" variant="bodySm">Summary star size</Text><input name="summary_star_size_px" type="number" defaultValue={settings.summary_star_size_px || 15} /></label>
                 <label><Text as="span" variant="bodySm">Summary text size</Text><input name="summary_text_size_px" type="number" defaultValue={settings.summary_text_size_px || 14} /></label>
+                <label><Text as="span" variant="bodySm">Write review button font size</Text><input name="write_review_btn_font_size_px" type="number" defaultValue={settings.write_review_btn_font_size_px || settings.body_size_px || 14} /></label>
               </InlineStack>
             </BlockStack>
           </Card>
@@ -238,6 +241,7 @@ export default function WidgetSettingsPage() {
               <InlineStack gap="300" wrap>
                 <label><Text as="span" variant="bodySm">Section heading</Text><input name="section_heading" defaultValue={settings.section_heading} /></label>
                 <label><Text as="span" variant="bodySm">Write review button label</Text><input name="write_review_label" defaultValue={settings.write_review_label} /></label>
+                <label><Text as="span" variant="bodySm">Review count label (e.g. Reviews)</Text><input name="review_count_label" defaultValue={settings.review_count_label || "Reviews"} /></label>
                 <label><Text as="span" variant="bodySm">Empty state text</Text><input name="empty_state_text" defaultValue={settings.empty_state_text} /></label>
                 <label><Text as="span" variant="bodySm">Verified badge label</Text><input name="verified_badge_label" defaultValue={settings.verified_badge_label} /></label>
               </InlineStack>

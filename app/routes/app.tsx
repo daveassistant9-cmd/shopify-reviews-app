@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -17,17 +17,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
+  const location = useLocation();
+  const qs = location.search || "";
+  const withEmbeddedParams = (path: string) => `${path}${qs}`;
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
-        <Link to="/app" rel="home">
+        <Link to={withEmbeddedParams("/app")} rel="home">
           Home
         </Link>
-        <Link to="/app/reviews">Reviews</Link>
-        <Link to="/app/imports">Imports</Link>
-        <Link to="/app/widget-settings">Widget settings</Link>
-        <Link to="/app/additional">Additional page</Link>
+        <Link to={withEmbeddedParams("/app/reviews")}>Reviews</Link>
+        <Link to={withEmbeddedParams("/app/imports")}>Imports</Link>
+        <Link to={withEmbeddedParams("/app/widget-settings")}>Widget settings</Link>
+        <Link to={withEmbeddedParams("/app/additional")}>Additional page</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>

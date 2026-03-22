@@ -26,7 +26,9 @@ export const DEFAULT_WIDGET_SETTINGS = {
   verified_badge_text_color: "#4f46e5",
   summary_star_size_px: 15,
   summary_text_size_px: 14,
+  write_review_btn_font_size_px: 14,
   show_review_count: true,
+  review_count_label: "Reviews",
   modal_title: "Write a review",
   modal_subtitle: "Share your experience with this product",
   modal_name_label: "Your name",
@@ -58,7 +60,9 @@ async function ensureWidgetSettingsColumns() {
       ADD COLUMN IF NOT EXISTS "verified_badge_text_color" TEXT NOT NULL DEFAULT '#4f46e5',
       ADD COLUMN IF NOT EXISTS "summary_star_size_px" INTEGER NOT NULL DEFAULT 15,
       ADD COLUMN IF NOT EXISTS "summary_text_size_px" INTEGER NOT NULL DEFAULT 14,
+      ADD COLUMN IF NOT EXISTS "write_review_btn_font_size_px" INTEGER NOT NULL DEFAULT 14,
       ADD COLUMN IF NOT EXISTS "show_review_count" BOOLEAN NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS "review_count_label" TEXT NOT NULL DEFAULT 'Reviews',
       ADD COLUMN IF NOT EXISTS "modal_title" TEXT NOT NULL DEFAULT 'Write a review',
       ADD COLUMN IF NOT EXISTS "modal_subtitle" TEXT NOT NULL DEFAULT 'Share your experience with this product',
       ADD COLUMN IF NOT EXISTS "modal_name_label" TEXT NOT NULL DEFAULT 'Your name',
@@ -110,7 +114,7 @@ export async function upsertWidgetSettings(shopId: string, input: Partial<typeof
       });
     } catch (error) {
       const msg = String((error as Error)?.message || "");
-      if (!msg.includes("Unknown argument") && !msg.includes("section_heading") && !msg.includes("empty_state_text") && !msg.includes("verified_badge_label") && !msg.includes("verified_badge_color") && !msg.includes("verified_badge_text_color") && !msg.includes("summary_star_size_px") && !msg.includes("summary_text_size_px") && !msg.includes("show_review_count") && !msg.includes("modal_") && !msg.includes("initial_reviews_limit") && !msg.includes("load_more_step") && !msg.includes("load_more_label") && !msg.includes("default_sort_mode")) {
+      if (!msg.includes("Unknown argument") && !msg.includes("section_heading") && !msg.includes("empty_state_text") && !msg.includes("verified_badge_label") && !msg.includes("verified_badge_color") && !msg.includes("verified_badge_text_color") && !msg.includes("summary_star_size_px") && !msg.includes("summary_text_size_px") && !msg.includes("write_review_btn_font_size_px") && !msg.includes("show_review_count") && !msg.includes("review_count_label") && !msg.includes("modal_") && !msg.includes("initial_reviews_limit") && !msg.includes("load_more_step") && !msg.includes("load_more_label") && !msg.includes("default_sort_mode")) {
         throw error;
       }
     }
@@ -123,7 +127,7 @@ export async function upsertWidgetSettings(shopId: string, input: Partial<typeof
         border_radius_px, font_family, heading_size_px, body_size_px, meta_size_px, card_spacing_px,
         desktop_columns, mobile_columns, show_verified_badge, show_review_date, show_rating_breakdown,
         show_write_review_btn, write_review_label, section_heading, empty_state_text, verified_badge_label,
-        verified_badge_color, verified_badge_text_color, summary_star_size_px, summary_text_size_px, show_review_count,
+        verified_badge_color, verified_badge_text_color, summary_star_size_px, summary_text_size_px, write_review_btn_font_size_px, show_review_count, review_count_label,
         modal_title, modal_subtitle, modal_name_label, modal_rating_label, modal_review_title_label, modal_review_body_label,
         modal_image_label, modal_submit_label, modal_success_message, modal_error_message, modal_close_label, modal_image_helper_text,
         initial_reviews_limit, load_more_step, load_more_label, default_sort_mode,
@@ -133,10 +137,10 @@ export async function upsertWidgetSettings(shopId: string, input: Partial<typeof
         $7, $8, $9, $10, $11, $12,
         $13, $14, $15, $16, $17,
         $18, $19, $20, $21, $22,
-        $23, $24, $25, $26, $27,
-        $28, $29, $30, $31, $32, $33,
-        $34, $35, $36, $37, $38, $39,
-        $40, $41, $42, $43,
+        $23, $24, $25, $26, $27, $28,
+        $29, $30, $31, $32, $33, $34,
+        $35, $36, $37, $38, $39, $40,
+        $41, $42, $43, $44, $45,
         now(), now()
       )
       ON CONFLICT (shop_id) DO UPDATE SET
@@ -165,7 +169,9 @@ export async function upsertWidgetSettings(shopId: string, input: Partial<typeof
         verified_badge_text_color = EXCLUDED.verified_badge_text_color,
         summary_star_size_px = EXCLUDED.summary_star_size_px,
         summary_text_size_px = EXCLUDED.summary_text_size_px,
+        write_review_btn_font_size_px = EXCLUDED.write_review_btn_font_size_px,
         show_review_count = EXCLUDED.show_review_count,
+        review_count_label = EXCLUDED.review_count_label,
         modal_title = EXCLUDED.modal_title,
         modal_subtitle = EXCLUDED.modal_subtitle,
         modal_name_label = EXCLUDED.modal_name_label,
@@ -210,7 +216,9 @@ export async function upsertWidgetSettings(shopId: string, input: Partial<typeof
       merged.verified_badge_text_color,
       merged.summary_star_size_px,
       merged.summary_text_size_px,
+      merged.write_review_btn_font_size_px,
       merged.show_review_count,
+      merged.review_count_label,
       merged.modal_title,
       merged.modal_subtitle,
       merged.modal_name_label,

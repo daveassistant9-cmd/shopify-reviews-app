@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation, useLocation } from "@remix-run/react";
 import { ProductSearchPicker, type ProductOption } from "../components/ProductSearchPicker";
 import { useState } from "react";
 import { BlockStack, Button, Card, InlineStack, Page, Text } from "@shopify/polaris";
@@ -189,10 +189,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function ImportsPage() {
   const { jobs, selected, rows, unresolved } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const location = useLocation();
   const busy = navigation.state !== "idle";
   const [mapTarget, setMapTarget] = useState<ProductOption | null>(null);
 
   const stats = (selected?.stats as Record<string, number> | undefined) ?? {};
+  const keepEmbeddedParams = (path: string, params?: Record<string, string>) => {
+    const current = new URLSearchParams(location.search);
+    Object.entries(params || {}).forEach(([k, v]) => {
+      current.set(k, v);
+    });
+    const q = current.toString();
+    return q ? `${path}?${q}` : path;
+  };
 
 
   return (
@@ -245,7 +254,7 @@ export default function ImportsPage() {
                   <Text as="span" variant="bodyMd">
                     {job.file_name} · {job.status} · {new Date(job.created_at).toLocaleString()}
                   </Text>
-                  <Link to={`/app/imports?jobId=${job.id}`}>Open</Link>
+                  <Link to={keepEmbeddedParams("/app/imports", { jobId: job.id })}>Open</Link>
                 </InlineStack>
               ))
             )}

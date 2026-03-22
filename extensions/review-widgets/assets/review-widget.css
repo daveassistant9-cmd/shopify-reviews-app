@@ -34,11 +34,12 @@
 .oc-rw-btn {
   border: 1px solid var(--rw-border);
   background: #fff;
-  border-radius: 999px;
+  border-radius: var(--rw-radius);
   padding: 9px 14px;
   cursor: pointer;
-  font-size: var(--rw-body-size);
+  font-size: var(--rw-button-font-size, var(--rw-body-size));
   font-weight: 600;
+  font-family: inherit;
   color: var(--rw-text);
   width: 100%;
   text-align: center;
@@ -48,7 +49,7 @@
   background: #fff;
   width: 32px;
   height: 32px;
-  border-radius: 999px;
+  border-radius: var(--rw-radius);
   display: flex;
   align-items: center;
   justify-content: center;

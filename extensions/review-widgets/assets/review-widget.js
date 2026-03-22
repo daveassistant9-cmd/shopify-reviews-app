@@ -136,6 +136,7 @@
         --rw-meta-size:${settings.meta_size_px}px;
         --rw-summary-star-size:${settings.summary_star_size_px || 15}px;
         --rw-summary-text-size:${settings.summary_text_size_px || settings.body_size_px || 14}px;
+        --rw-button-font-size:${settings.write_review_btn_font_size_px || settings.body_size_px || 14}px;
         --rw-gap:${settings.card_spacing_px}px;
         --rw-desktop-cols:${settings.desktop_columns || 3};
         --rw-mobile-cols:${settings.mobile_columns || 2};
@@ -185,7 +186,7 @@
               <div class="oc-rw-summary-left">
                 <span class="oc-rw-stars" style="font-size:${summaryStarSize}px;">${stars(average)}</span>
                 <span class="oc-rw-rating" style="font-size:${summaryTextSize}px;">${average.toFixed(1)}</span>
-                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} reviews</span>` : ''}
+                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} ${settings.review_count_label || 'Reviews'}</span>` : ''}
                 ${settings.show_rating_breakdown ? `<button class="oc-rw-caret-btn" data-toggle="${id}" aria-label="Toggle breakdown">▾</button>` : ''}
               </div>
               <button class="oc-rw-icon-btn" aria-label="Filters">⚙</button>
@@ -199,7 +200,7 @@
                 <div>
                   <div class="oc-rw-break-average">${average.toFixed(1)}</div>
                   <div class="oc-rw-stars">${stars(average)}</div>
-                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} reviews</div>` : ''}
+                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} ${settings.review_count_label || 'Reviews'}</div>` : ''}
                 </div>
                 <div class="oc-rw-break-lines">${breakdownHtml}</div>
               </div>
