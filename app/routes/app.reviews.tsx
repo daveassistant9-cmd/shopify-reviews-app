@@ -294,6 +294,8 @@ export default function ReviewsPage() {
   const hasFilters =
     !!(filters.productGid || filters.productText || filters.rating || filters.status || searchParams.toString());
 
+  const postActionUrl = keepEmbeddedParams("/app/reviews");
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createMedia, setCreateMedia] = useState<string[]>([]);
   const [createUrl, setCreateUrl] = useState("");
@@ -417,7 +419,7 @@ export default function ReviewsPage() {
         <Card>
           <BlockStack gap="200">
             <Text as="p" variant="bodyMd">Bulk actions (reliable mode: check rows then run)</Text>
-            <Form method="post" id="bulk-fallback-form">
+            <Form method="post" action={postActionUrl} id="bulk-fallback-form">
               <InlineStack gap="200" wrap>
                 <select name="intent" defaultValue="bulk_publish" style={{ padding: 8 }}>
                   <option value="bulk_publish">Bulk publish</option>
@@ -428,7 +430,7 @@ export default function ReviewsPage() {
                 <button type="submit" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #111827', background: '#111827', color: '#fff', cursor: 'pointer' }}>Run on checked reviews</button>
               </InlineStack>
             </Form>
-            <Form method="post" id="bulk-reassign-fallback-form">
+            <Form method="post" action={postActionUrl} id="bulk-reassign-fallback-form">
               <input type="hidden" name="intent" value="bulk_reassign" />
               <input type="hidden" name="review_ids" value={selectedIds.join(',')} />
               <InlineStack gap="200" wrap>
@@ -451,11 +453,11 @@ export default function ReviewsPage() {
           <BlockStack gap="200">
             <Text as="p" variant="bodyMd">{selectedIds.length} selected (interactive mode)</Text>
             <InlineStack gap="200" wrap>
-              <Form method="post"><input type="hidden" name="intent" value="bulk_publish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk publish</Button></Form>
-              <Form method="post"><input type="hidden" name="intent" value="bulk_unpublish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk unpublish</Button></Form>
-              <Form method="post"><input type="hidden" name="intent" value="bulk_archive" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit tone="critical" disabled={!selectedIds.length}>Bulk archive</Button></Form>
+              <Form method="post" action={postActionUrl}><input type="hidden" name="intent" value="bulk_publish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk publish</Button></Form>
+              <Form method="post" action={postActionUrl}><input type="hidden" name="intent" value="bulk_unpublish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk unpublish</Button></Form>
+              <Form method="post" action={postActionUrl}><input type="hidden" name="intent" value="bulk_archive" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit tone="critical" disabled={!selectedIds.length}>Bulk archive</Button></Form>
             </InlineStack>
-            <Form method="post">
+            <Form method="post" action={postActionUrl}>
               <input type="hidden" name="intent" value="bulk_reassign" />
               <input type="hidden" name="review_ids" value={selectedIds.join(',')} />
               <input type="hidden" name="bulk_product_gid" value={bulkProduct?.gid || ''} />
@@ -522,8 +524,8 @@ export default function ReviewsPage() {
                       >
                         Edit
                       </a>
-                      <Form method="post"><input type="hidden" name="intent" value="publish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status === "published" || busy}>Publish</Button></Form>
-                      <Form method="post"><input type="hidden" name="intent" value="unpublish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status !== "published" || busy}>Unpublish</Button></Form>
+                      <Form method="post" action={postActionUrl}><input type="hidden" name="intent" value="publish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status === "published" || busy}>Publish</Button></Form>
+                      <Form method="post" action={postActionUrl}><input type="hidden" name="intent" value="unpublish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status !== "published" || busy}>Unpublish</Button></Form>
                     </InlineStack>
                   </InlineStack>
 
@@ -559,7 +561,7 @@ export default function ReviewsPage() {
       <Card>
         <BlockStack gap="200" id="quick-create-review">
           <Text as="h3" variant="headingSm">Quick create review (reliable mode)</Text>
-          <Form method="post">
+          <Form method="post" action={postActionUrl}>
             <input type="hidden" name="intent" value="create" />
             <BlockStack gap="200">
               <label><Text as="span" variant="bodyMd">Product GID</Text><input name="product_gid" required placeholder="gid://shopify/Product/..." style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
@@ -575,7 +577,7 @@ export default function ReviewsPage() {
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create review" primaryAction={undefined}>
         <Modal.Section>
-          <Form method="post">
+          <Form method="post" action={postActionUrl}>
             <input type="hidden" name="intent" value="create" />
             <input type="hidden" name="media_urls" value={createMedia.join("\n")} />
             <BlockStack gap="300">
