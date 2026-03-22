@@ -347,7 +347,7 @@ export async function mirrorExternalMediaToShopify(args: {
   return ingestMediaToShopify({
     admin: args.admin,
     shopId: args.shopId,
-    sourceUrls: args.sourceUrls,
+    externalUrls: args.sourceUrls,
     reviewId: args.reviewId,
     maxItems: 10,
   });
