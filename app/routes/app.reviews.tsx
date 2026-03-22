@@ -95,9 +95,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const formData = await request.formData();
-  const intent = String(formData.get("intent") || "");
+  try {
+    const { session } = await authenticate.admin(request);
+    const formData = await request.formData();
+    const intent = String(formData.get("intent") || "");
 
   if (intent === "create") {
     const rating = Number(formData.get("rating"));
@@ -219,7 +220,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ ok: true });
   }
 
-  return json({ ok: false, error: "Unknown intent" }, { status: 400 });
+    return json({ ok: false, error: "Unknown intent" }, { status: 400 });
+  } catch (error: any) {
+    return json({ ok: false, error: error?.message || "Action failed" }, { status: 500 });
+  }
 };
 
 const badgeTone = (status: ReviewStatus): "success" | "attention" | "info" => {
@@ -290,10 +294,10 @@ export default function ReviewsPage() {
           <BlockStack gap="300">
             <InlineStack align="space-between" blockAlign="center">
               <Text as="h2" variant="headingMd">Manage reviews</Text>
-              <button
-                type="button"
-                onClick={() => setCreateOpen(true)}
+              <a
+                href="#quick-create-review"
                 style={{
+                  display: "inline-block",
                   background: "#111827",
                   color: "#fff",
                   border: 0,
@@ -301,10 +305,11 @@ export default function ReviewsPage() {
                   padding: "8px 12px",
                   cursor: "pointer",
                   fontWeight: 600,
+                  textDecoration: "none",
                 }}
               >
                 Create review
-              </button>
+              </a>
             </InlineStack>
             <Form method="get">
               <BlockStack gap="300">
@@ -356,6 +361,22 @@ export default function ReviewsPage() {
                   <option value="bulk_archive">Bulk archive</option>
                 </select>
                 <Button submit variant="primary">Run on checked reviews</Button>
+              </InlineStack>
+            </Form>
+            <Form method="post" id="bulk-reassign-fallback-form">
+              <input type="hidden" name="intent" value="bulk_reassign" />
+              <input type="hidden" name="review_ids" value={selectedIds.join(',')} />
+              <InlineStack gap="200" wrap>
+                <input name="review_ids" placeholder="Review IDs comma-separated (fallback if selection broken)" style={{ minWidth: 320, padding: 8 }} />
+                <input
+                  name="bulk_product_gid"
+                  placeholder="Assign product GID: gid://shopify/Product/..."
+                  style={{ minWidth: 340, padding: 8 }}
+                  required
+                />
+                <input name="bulk_product_title_snapshot" placeholder="Product title (optional)" style={{ minWidth: 220, padding: 8 }} />
+                <input name="bulk_product_handle_snapshot" placeholder="Product handle (optional)" style={{ minWidth: 180, padding: 8 }} />
+                <Button submit>Assign product to checked reviews</Button>
               </InlineStack>
             </Form>
           </BlockStack>
@@ -474,7 +495,7 @@ export default function ReviewsPage() {
       </BlockStack>
 
       <Card>
-        <BlockStack gap="200">
+        <BlockStack gap="200" id="quick-create-review">
           <Text as="h3" variant="headingSm">Quick create review (reliable mode)</Text>
           <Form method="post">
             <input type="hidden" name="intent" value="create" />
