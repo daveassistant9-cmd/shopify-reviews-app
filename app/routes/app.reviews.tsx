@@ -366,7 +366,6 @@ export default function ReviewsPage() {
                   <input key={k} type="hidden" name={k} value={v} />
                 ))}
                 <InlineStack gap="300" wrap>
-                  <input type="hidden" name="product_gid" value={filterProduct?.gid || ""} />
                   <input type="hidden" name="product_text" value="" />
                   <ProductSearchPicker
                     label="Filter by product"
@@ -376,13 +375,14 @@ export default function ReviewsPage() {
                   <label style={{ width: 280 }}>
                     <Text as="span" variant="bodyMd">Filter by product (fallback list)</Text>
                     <select
+                      name="product_gid"
                       style={{ width: "100%", padding: 8, marginTop: 6 }}
+                      defaultValue={filters.productGid || ""}
                       onChange={(e) => {
                         const gid = e.currentTarget.value;
                         const hit = productOptions.find((p) => p.gid === gid) || null;
                         setFilterProduct(hit ? { gid: hit.gid, title: hit.title, handle: hit.handle } : null);
                       }}
-                      defaultValue=""
                     >
                       <option value="">Select product…</option>
                       {productOptions.map((p) => (<option key={p.gid} value={p.gid}>{p.title}</option>))}
@@ -424,6 +424,7 @@ export default function ReviewsPage() {
                   <option value="bulk_unpublish">Bulk unpublish</option>
                   <option value="bulk_archive">Bulk archive</option>
                 </select>
+                <input name="review_ids" placeholder="Fallback: comma-separated review IDs" style={{ minWidth: 320, padding: 8 }} />
                 <button type="submit" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #111827', background: '#111827', color: '#fff', cursor: 'pointer' }}>Run on checked reviews</button>
               </InlineStack>
             </Form>
