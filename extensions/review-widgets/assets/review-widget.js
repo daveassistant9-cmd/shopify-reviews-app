@@ -137,6 +137,20 @@
         --rw-summary-star-size:${settings.summary_star_size_px || 15}px;
         --rw-summary-text-size:${settings.summary_text_size_px || settings.body_size_px || 14}px;
         --rw-button-font-size:${settings.write_review_btn_font_size_px || settings.body_size_px || 14}px;
+        --rw-breakdown-caret-size:${settings.breakdown_caret_size_px || 14}px;
+        --rw-heading-weight:${settings.heading_weight || 700};
+        --rw-summary-rating-weight:${settings.summary_rating_weight || 700};
+        --rw-summary-count-weight:${settings.summary_count_weight || 500};
+        --rw-button-weight:${settings.button_weight || 600};
+        --rw-reviewer-name-weight:${settings.reviewer_name_weight || 700};
+        --rw-title-weight:${settings.title_weight || 650};
+        --rw-body-weight:${settings.body_weight || 400};
+        --rw-meta-weight:${settings.meta_weight || 500};
+        --rw-verified-weight:${settings.verified_weight || 600};
+        --rw-breakdown-average-weight:${settings.breakdown_average_weight || 700};
+        --rw-modal-title-weight:${settings.modal_title_weight || 700};
+        --rw-modal-label-weight:${settings.modal_label_weight || 600};
+        --rw-input-weight:${settings.input_weight || 400};
         --rw-gap:${settings.card_spacing_px}px;
         --rw-desktop-cols:${settings.desktop_columns || 3};
         --rw-mobile-cols:${settings.mobile_columns || 2};
@@ -186,7 +200,7 @@
               <div class="oc-rw-summary-left">
                 <span class="oc-rw-stars" style="font-size:${summaryStarSize}px;">${stars(average)}</span>
                 <span class="oc-rw-rating" style="font-size:${summaryTextSize}px;">${average.toFixed(1)}</span>
-                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} ${settings.review_count_label || 'Reviews'}</span>` : ''}
+                ${settings.show_review_count !== false ? `<span class="oc-rw-count" style="font-size:${summaryTextSize}px;">${total} ${(settings.review_count_label || 'Reviews').trim() || 'Reviews'}</span>` : ''}
                 ${settings.show_rating_breakdown ? `<button class="oc-rw-caret-btn" data-toggle="${id}" aria-label="Toggle breakdown">▾</button>` : ''}
               </div>
               <button class="oc-rw-icon-btn" aria-label="Filters">⚙</button>
@@ -195,12 +209,12 @@
           </div>
 
           ${settings.show_rating_breakdown ? `
-            <div id="${id}" class="oc-rw-breakdown" style="display:${initialOpen ? 'block' : 'none'};">
+            <div id="${id}" class="oc-rw-breakdown ${initialOpen ? 'is-open' : ''}">
               <div class="oc-rw-break-header">
                 <div>
                   <div class="oc-rw-break-average">${average.toFixed(1)}</div>
-                  <div class="oc-rw-stars">${stars(average)}</div>
-                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} ${settings.review_count_label || 'Reviews'}</div>` : ''}
+                  <div class="oc-rw-stars" style="text-align:center;">${stars(average)}</div>
+                  ${settings.show_review_count !== false ? `<div class="oc-rw-break-count">${total} ${(settings.review_count_label || 'Reviews').trim() || 'Reviews'}</div>` : ''}
                 </div>
                 <div class="oc-rw-break-lines">${breakdownHtml}</div>
               </div>
@@ -328,9 +342,8 @@
         btn.addEventListener('click', () => {
           const el = byId(btn.getAttribute('data-toggle'));
           if (!el) return;
-          const hidden = el.style.display === 'none';
-          el.style.display = hidden ? 'block' : 'none';
-          btn.textContent = hidden ? '▴' : '▾';
+          const isOpen = el.classList.toggle('is-open');
+          btn.textContent = isOpen ? '▴' : '▾';
         });
       });
 

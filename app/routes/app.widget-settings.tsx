@@ -79,8 +79,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     summary_star_size_px: num(formData.get("summary_star_size_px"), 15, 10, 28),
     summary_text_size_px: num(formData.get("summary_text_size_px"), 14, 10, 28),
     write_review_btn_font_size_px: num(formData.get("write_review_btn_font_size_px"), 14, 10, 28),
+    breakdown_caret_size_px: num(formData.get("breakdown_caret_size_px"), 14, 8, 40),
     show_review_count: bool(formData.get("show_review_count")),
     review_count_label: String(formData.get("review_count_label") || "Reviews"),
+    heading_weight: num(formData.get("heading_weight"), 700, 100, 900),
+    summary_rating_weight: num(formData.get("summary_rating_weight"), 700, 100, 900),
+    summary_count_weight: num(formData.get("summary_count_weight"), 500, 100, 900),
+    button_weight: num(formData.get("button_weight"), 600, 100, 900),
+    reviewer_name_weight: num(formData.get("reviewer_name_weight"), 700, 100, 900),
+    title_weight: num(formData.get("title_weight"), 650, 100, 900),
+    body_weight: num(formData.get("body_weight"), 400, 100, 900),
+    meta_weight: num(formData.get("meta_weight"), 500, 100, 900),
+    verified_weight: num(formData.get("verified_weight"), 600, 100, 900),
+    breakdown_average_weight: num(formData.get("breakdown_average_weight"), 700, 100, 900),
+    modal_title_weight: num(formData.get("modal_title_weight"), 700, 100, 900),
+    modal_label_weight: num(formData.get("modal_label_weight"), 600, 100, 900),
+    input_weight: num(formData.get("input_weight"), 400, 100, 900),
     modal_title: String(formData.get("modal_title") || "Write a review"),
     modal_subtitle: String(formData.get("modal_subtitle") || "Share your experience with this product"),
     modal_name_label: String(formData.get("modal_name_label") || "Your name"),
@@ -152,6 +166,28 @@ export default function WidgetSettingsPage() {
                 <label><Text as="span" variant="bodySm">Summary star size</Text><input name="summary_star_size_px" type="number" defaultValue={settings.summary_star_size_px || 15} /></label>
                 <label><Text as="span" variant="bodySm">Summary text size</Text><input name="summary_text_size_px" type="number" defaultValue={settings.summary_text_size_px || 14} /></label>
                 <label><Text as="span" variant="bodySm">Write review button font size</Text><input name="write_review_btn_font_size_px" type="number" defaultValue={settings.write_review_btn_font_size_px || settings.body_size_px || 14} /></label>
+                <label><Text as="span" variant="bodySm">Breakdown caret size</Text><input name="breakdown_caret_size_px" type="number" defaultValue={settings.breakdown_caret_size_px || 14} /></label>
+              </InlineStack>
+            </BlockStack>
+          </Card>
+
+          <Card>
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm">Font weights</Text>
+              <InlineStack gap="300" wrap>
+                <label><Text as="span" variant="bodySm">Heading weight</Text><input name="heading_weight" type="number" min={100} max={900} step={100} defaultValue={settings.heading_weight || 700} /></label>
+                <label><Text as="span" variant="bodySm">Summary rating weight</Text><input name="summary_rating_weight" type="number" min={100} max={900} step={100} defaultValue={settings.summary_rating_weight || 700} /></label>
+                <label><Text as="span" variant="bodySm">Summary count weight</Text><input name="summary_count_weight" type="number" min={100} max={900} step={100} defaultValue={settings.summary_count_weight || 500} /></label>
+                <label><Text as="span" variant="bodySm">Buttons weight</Text><input name="button_weight" type="number" min={100} max={900} step={100} defaultValue={settings.button_weight || 600} /></label>
+                <label><Text as="span" variant="bodySm">Reviewer name weight</Text><input name="reviewer_name_weight" type="number" min={100} max={900} step={100} defaultValue={settings.reviewer_name_weight || 700} /></label>
+                <label><Text as="span" variant="bodySm">Review title weight</Text><input name="title_weight" type="number" min={100} max={900} step={100} defaultValue={settings.title_weight || 650} /></label>
+                <label><Text as="span" variant="bodySm">Body text weight</Text><input name="body_weight" type="number" min={100} max={900} step={100} defaultValue={settings.body_weight || 400} /></label>
+                <label><Text as="span" variant="bodySm">Meta text weight</Text><input name="meta_weight" type="number" min={100} max={900} step={100} defaultValue={settings.meta_weight || 500} /></label>
+                <label><Text as="span" variant="bodySm">Verified badge weight</Text><input name="verified_weight" type="number" min={100} max={900} step={100} defaultValue={settings.verified_weight || 600} /></label>
+                <label><Text as="span" variant="bodySm">Breakdown average weight</Text><input name="breakdown_average_weight" type="number" min={100} max={900} step={100} defaultValue={settings.breakdown_average_weight || 700} /></label>
+                <label><Text as="span" variant="bodySm">Modal title weight</Text><input name="modal_title_weight" type="number" min={100} max={900} step={100} defaultValue={settings.modal_title_weight || 700} /></label>
+                <label><Text as="span" variant="bodySm">Modal labels weight</Text><input name="modal_label_weight" type="number" min={100} max={900} step={100} defaultValue={settings.modal_label_weight || 600} /></label>
+                <label><Text as="span" variant="bodySm">Input text weight</Text><input name="input_weight" type="number" min={100} max={900} step={100} defaultValue={settings.input_weight || 400} /></label>
               </InlineStack>
             </BlockStack>
           </Card>

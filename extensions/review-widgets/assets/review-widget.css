@@ -2,7 +2,7 @@
 .oc-rw-heading {
   color: var(--rw-text);
   font-size: var(--rw-heading-size);
-  font-weight: 700;
+  font-weight: var(--rw-heading-weight, 700);
   margin: 0 0 8px;
 }
 .oc-rw-summary {
@@ -18,15 +18,15 @@
 .oc-rw-summary-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .oc-rw-stars { color: var(--rw-star); letter-spacing: 0.5px; font-size: 14px; line-height: 1; }
 .oc-rw-summary .oc-rw-stars { font-size: var(--rw-summary-star-size, 15px); }
-.oc-rw-rating { color: var(--rw-text); font-size: var(--rw-summary-text-size, var(--rw-body-size)); font-weight: 700; }
-.oc-rw-count { color: var(--rw-text); font-size: var(--rw-summary-text-size, var(--rw-body-size)); font-weight: 500; white-space: nowrap; }
+.oc-rw-rating { color: var(--rw-text); font-size: var(--rw-summary-text-size, var(--rw-body-size)); font-weight: var(--rw-summary-rating-weight, 700); }
+.oc-rw-count { color: var(--rw-text); font-size: var(--rw-summary-text-size, var(--rw-body-size)); font-weight: var(--rw-summary-count-weight, 500); white-space: nowrap; }
 .oc-rw-caret-btn {
   border: 0;
   background: transparent;
   padding: 0 2px;
   cursor: pointer;
   color: var(--rw-meta);
-  font-size: 14px;
+  font-size: var(--rw-breakdown-caret-size, 14px);
   line-height: 1;
   transform: translateY(-1px);
 }
@@ -38,7 +38,7 @@
   padding: 9px 14px;
   cursor: pointer;
   font-size: var(--rw-button-font-size, var(--rw-body-size));
-  font-weight: 600;
+  font-weight: var(--rw-button-weight, 600);
   font-family: inherit;
   color: var(--rw-text);
   width: 100%;
@@ -60,26 +60,39 @@
 
 .oc-rw-breakdown {
   border-bottom: 1px solid var(--rw-border);
+  padding: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height .32s ease, opacity .22s ease, padding .22s ease;
+}
+.oc-rw-breakdown.is-open {
   padding: 14px 0 12px;
+  max-height: 720px;
+  opacity: 1;
 }
 .oc-rw-break-header {
   display: grid;
   grid-template-columns: minmax(100px, 140px) 1fr;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
   max-width: 560px;
 }
+.oc-rw-break-header > div:first-child { text-align: center; }
 .oc-rw-break-average {
   font-size: calc(var(--rw-heading-size) * 2);
-  font-weight: 700;
+  font-weight: var(--rw-breakdown-average-weight, 700);
   color: var(--rw-text);
   line-height: 0.95;
   margin-bottom: 8px;
+  text-align: center;
 }
 .oc-rw-break-count {
   color: var(--rw-meta);
   font-size: var(--rw-meta-size);
   margin-top: 4px;
+  text-align: center;
+  font-weight: var(--rw-meta-weight, 500);
 }
 .oc-rw-break-lines { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
 .oc-rw-line {
@@ -89,6 +102,7 @@
   gap: 8px;
   font-size: var(--rw-meta-size);
   color: var(--rw-meta);
+  font-weight: var(--rw-meta-weight, 500);
 }
 .oc-rw-bar { background: #f3f4f6; border-radius: 999px; height: 8px; overflow: hidden; }
 .oc-rw-bar-fill { background: var(--rw-star); height: 100%; }
@@ -142,7 +156,7 @@
 .oc-rw-reviewer-name {
   color: var(--rw-text);
   font-size: var(--rw-body-size);
-  font-weight: 700;
+  font-weight: var(--rw-reviewer-name-weight, 700);
 }
 .oc-rw-meta-row {
   display: flex;
@@ -152,6 +166,7 @@
   color: var(--rw-meta);
   font-size: var(--rw-meta-size);
   margin-bottom: 7px;
+  font-weight: var(--rw-meta-weight, 500);
 }
 .oc-rw-verified {
   display: inline-flex;
@@ -160,6 +175,7 @@
   border-radius: 999px;
   padding: 1px 7px;
   font-size: calc(var(--rw-meta-size) - 1px);
+  font-weight: var(--rw-verified-weight, 600);
   background: var(--rw-badge-bg);
   color: var(--rw-badge-text);
   line-height: 1.35;
@@ -171,12 +187,12 @@
 }
 .oc-rw-title {
   font-size: var(--rw-body-size);
-  font-weight: 650;
+  font-weight: var(--rw-title-weight, 650);
   margin-bottom: 5px;
   color: var(--rw-text);
 }
-.oc-rw-text { font-size: var(--rw-body-size); line-height: 1.48; color: var(--rw-text); }
-.oc-rw-empty { color: var(--rw-meta); font-size: var(--rw-body-size); padding-top: 12px; }
+.oc-rw-text { font-size: var(--rw-body-size); line-height: 1.48; color: var(--rw-text); font-weight: var(--rw-body-weight, 400); }
+.oc-rw-empty { color: var(--rw-meta); font-size: var(--rw-body-size); padding-top: 12px; font-weight: var(--rw-meta-weight, 500); }
 
 .oc-rw-modal[hidden] { display: none; }
 .oc-rw-modal { position: fixed; inset: 0; z-index: 9999; }
@@ -245,11 +261,11 @@
   border-radius: 14px;
   padding: 14px;
 }
-.oc-rw-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.oc-rw-modal-subtitle { color: var(--rw-meta); font-size: var(--rw-meta-size); margin-bottom: 8px; }
+.oc-rw-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-weight: var(--rw-modal-title-weight, 700); }
+.oc-rw-modal-subtitle { color: var(--rw-meta); font-size: var(--rw-meta-size); margin-bottom: 8px; font-weight: var(--rw-meta-weight, 500); }
 .oc-rw-form { display: grid; gap: 12px; }
-.oc-rw-form-block { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); }
-.oc-rw-form-label { color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: 600; }
+.oc-rw-form-block { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: var(--rw-modal-label-weight, 600); }
+.oc-rw-form-label { color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: var(--rw-modal-label-weight, 600); }
 .oc-rw-star-input { display: flex; gap: 6px; }
 .oc-rw-star-btn {
   border: 0;
@@ -262,8 +278,8 @@
 }
 .oc-rw-star-btn.is-active { color: var(--rw-star); }
 .oc-rw-form-help { color: var(--rw-meta); font-size: var(--rw-meta-size); }
-.oc-rw-form label { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); }
-.oc-rw-form input, .oc-rw-form textarea, .oc-rw-form select { width: 100%; padding: 10px; border: 1px solid var(--rw-border); border-radius: 10px; }
+.oc-rw-form label { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: var(--rw-modal-label-weight, 600); }
+.oc-rw-form input, .oc-rw-form textarea, .oc-rw-form select { width: 100%; padding: 10px; border: 1px solid var(--rw-border); border-radius: 10px; font-weight: var(--rw-input-weight, 400); font-family: inherit; }
 .oc-rw-image-preview-wrap { border: 1px dashed var(--rw-border); border-radius: 10px; padding: 8px; transition: border-color .15s ease, background .15s ease; }
 .oc-rw-image-preview-wrap.is-drag { border-color: var(--rw-star); background: rgba(245,158,11,.08); }
 .oc-rw-image-preview-head { color: var(--rw-meta); font-size: var(--rw-meta-size); margin-bottom: 6px; }
