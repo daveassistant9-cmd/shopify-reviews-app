@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData, useLocation, useNavigate, useNavigation } from "@remix-run/react";
 import { useMemo, useState } from "react";
-import { BlockStack, Button, Card, InlineStack, Modal, Text } from "@shopify/polaris";
+import { BlockStack, Button, Card, InlineStack, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { getReviewById, updateReviewById } from "../lib/reviews.server";
 import { ProductSearchPicker, type ProductOption } from "../components/ProductSearchPicker";
@@ -122,8 +122,12 @@ export default function EditReviewRouteModal() {
   };
 
   return (
-    <Modal open onClose={() => navigate(backToReviews)} title="Edit review" large>
-      <Modal.Section>
+    <Card>
+      <BlockStack gap="300">
+        <InlineStack align="space-between" blockAlign="center">
+          <Text as="h2" variant="headingMd">Edit review</Text>
+          <a href={backToReviews} style={{ textDecoration: 'none' }}>Back to reviews</a>
+        </InlineStack>
         <Form method="post">
           <BlockStack gap="300">
             <input type="hidden" name="status" value={review.status} />
@@ -143,15 +147,7 @@ export default function EditReviewRouteModal() {
                 <Text as="h3" variant="headingSm">Media</Text>
                 <InlineStack gap="200" wrap>
                   {mediaUrls.map((url, idx) => (
-                    <div
-                      key={`${url}-${idx}`}
-                      style={{ width: 110, padding: 6, border: dragIndex === idx ? '2px solid #6366f1' : '1px solid #ddd', borderRadius: 10, background: '#fff' }}
-                      draggable
-                      onDragStart={() => setDragIndex(idx)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => { if (dragIndex != null) reorder(dragIndex, idx); setDragIndex(null); }}
-                      onDragEnd={() => setDragIndex(null)}
-                    >
+                    <div key={`${url}-${idx}`} style={{ width: 110, padding: 6, border: dragIndex === idx ? '2px solid #6366f1' : '1px solid #ddd', borderRadius: 10, background: '#fff' }} draggable onDragStart={() => setDragIndex(idx)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (dragIndex != null) reorder(dragIndex, idx); setDragIndex(null); }} onDragEnd={() => setDragIndex(null)}>
                       <img src={url} alt="review media" style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 8, border: "1px solid #ddd" }} />
                       <InlineStack align="space-between" blockAlign="center">
                         <Text as="span" variant="bodySm" tone="subdued">#{idx + 1}</Text>
@@ -172,12 +168,12 @@ export default function EditReviewRouteModal() {
             <label><Text as="span" variant="bodyMd">Submitted at</Text><input name="submitted_at" defaultValue={review.submitted_at ? new Date(review.submitted_at).toISOString() : ""} style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
 
             <InlineStack align="end" gap="200">
-              <Button onClick={() => navigate(backToReviews)}>Cancel</Button>
+              <a href={backToReviews} style={{ textDecoration: 'none' }}>Cancel</a>
               <Button submit variant="primary" loading={busy}>Save</Button>
             </InlineStack>
           </BlockStack>
         </Form>
-      </Modal.Section>
-    </Modal>
+      </BlockStack>
+    </Card>
   );
 }
