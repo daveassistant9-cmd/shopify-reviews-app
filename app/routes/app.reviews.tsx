@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useNavigation, Form, useLocation, useSearchParams } from "@remix-run/react";
+import { Outlet, useLoaderData, useNavigation, Form, useLocation, useSearchParams } from "@remix-run/react";
 import { useState } from "react";
 import {
   Badge,
@@ -49,7 +49,7 @@ const parseMediaUrlsField = (raw: string) => {
 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const url = new URL(request.url);
   const productGid = url.searchParams.get("product_gid") || "";
   const productText = url.searchParams.get("product_text") || "";
@@ -86,9 +86,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ]),
   );
 
+  let productOptions: Array<{ gid: string; title: string; handle: string }> = [];
+  try {
+    const res = await admin.graphql(
+      `#graphql
+      query ProductsForAdminList($first: Int!) {
+        products(first: $first, sortKey: TITLE) { nodes { id title handle } }
+      }
+      `,
+      { variables: { first: 100 } },
+    );
+    const payload = await res.json();
+    productOptions = (payload?.data?.products?.nodes || []).map((p: any) => ({ gid: p.id, title: p.title || p.handle || p.id, handle: p.handle || "" }));
+  } catch {}
+
   return json({
     reviews,
     aggregateByProduct,
+    productOptions,
     filters: { productGid, productText, rating: ratingRaw, status: statusRaw },
     adminProductBase: `https://admin.shopify.com/store/${session.shop.replace(".myshopify.com", "")}/products/`,
   });
@@ -233,7 +248,7 @@ const badgeTone = (status: ReviewStatus): "success" | "attention" | "info" => {
 };
 
 export default function ReviewsPage() {
-  const { reviews, aggregateByProduct, filters, adminProductBase } = useLoaderData<typeof loader>();
+  const { reviews, aggregateByProduct, productOptions, filters, adminProductBase } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const embeddedKeys = ["shop", "host", "embedded", "hmac", "timestamp", "id_token", "locale", "session"];
@@ -324,6 +339,21 @@ export default function ReviewsPage() {
                     value={filterProduct}
                     onChange={(p) => setFilterProduct(p)}
                   />
+                  <label style={{ width: 280 }}>
+                    <Text as="span" variant="bodyMd">Filter by product (fallback list)</Text>
+                    <select
+                      style={{ width: "100%", padding: 8, marginTop: 6 }}
+                      onChange={(e) => {
+                        const gid = e.currentTarget.value;
+                        const hit = productOptions.find((p) => p.gid === gid) || null;
+                        setFilterProduct(hit ? { gid: hit.gid, title: hit.title, handle: hit.handle } : null);
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="">Select product…</option>
+                      {productOptions.map((p) => (<option key={p.gid} value={p.gid}>{p.title}</option>))}
+                    </select>
+                  </label>
                   <label style={{ width: 160 }}>
                     <Text as="span" variant="bodyMd">Rating</Text>
                     <select name="rating" defaultValue={filters.rating || ""} style={{ width: "100%", padding: 8, marginTop: 6 }}>
@@ -339,9 +369,9 @@ export default function ReviewsPage() {
                 </InlineStack>
                 <InlineStack align="end" gap="200">
                   {hasFilters && (
-                    <Link to={keepEmbeddedParams("/app/reviews")} style={{ alignSelf: "center" }}>
+                    <a href={keepEmbeddedParams("/app/reviews")} style={{ alignSelf: "center" }}>
                       Clear
-                    </Link>
+                    </a>
                   )}
                   <Button submit variant="primary" loading={busy}>Apply filters</Button>
                 </InlineStack>
@@ -360,7 +390,7 @@ export default function ReviewsPage() {
                   <option value="bulk_unpublish">Bulk unpublish</option>
                   <option value="bulk_archive">Bulk archive</option>
                 </select>
-                <Button submit variant="primary">Run on checked reviews</Button>
+                <button type="submit" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #111827', background: '#111827', color: '#fff', cursor: 'pointer' }}>Run on checked reviews</button>
               </InlineStack>
             </Form>
             <Form method="post" id="bulk-reassign-fallback-form">
@@ -376,7 +406,7 @@ export default function ReviewsPage() {
                 />
                 <input name="bulk_product_title_snapshot" placeholder="Product title (optional)" style={{ minWidth: 220, padding: 8 }} />
                 <input name="bulk_product_handle_snapshot" placeholder="Product handle (optional)" style={{ minWidth: 180, padding: 8 }} />
-                <Button submit>Assign product to checked reviews</Button>
+                <button type="submit" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Assign product to checked reviews</button>
               </InlineStack>
             </Form>
           </BlockStack>
@@ -444,8 +474,8 @@ export default function ReviewsPage() {
                       <Text as="span" variant="bodySm" tone="subdued">{new Date(review.created_at).toLocaleDateString()}</Text>
                     </InlineStack>
                     <InlineStack gap="150" wrap>
-                      <Link
-                        to={`${keepEmbeddedParams(`/app/reviews/${review.id}/edit`)}`}
+                      <a
+                        href={`${keepEmbeddedParams(`/app/reviews/${review.id}/edit`)}`}
                         style={{
                           display: "inline-block",
                           padding: "6px 10px",
@@ -457,7 +487,7 @@ export default function ReviewsPage() {
                         }}
                       >
                         Edit
-                      </Link>
+                      </a>
                       <Form method="post"><input type="hidden" name="intent" value="publish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status === "published" || busy}>Publish</Button></Form>
                       <Form method="post"><input type="hidden" name="intent" value="unpublish" /><input type="hidden" name="review_id" value={review.id} /><Button size="slim" submit disabled={review.status !== "published" || busy}>Unpublish</Button></Form>
                     </InlineStack>
