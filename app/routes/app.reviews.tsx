@@ -134,10 +134,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_reassign" || intent === "bulk_archive") {
-    const ids = String(formData.get("review_ids") || "")
-      .split(",")
+    const idsFromAll = formData
+      .getAll("review_ids")
+      .map((v) => String(v || ""))
+      .flatMap((chunk) => chunk.split(","))
       .map((v) => v.trim())
       .filter(Boolean);
+    const ids = Array.from(new Set(idsFromAll));
     if (!ids.length) return json({ ok: false, error: "No reviews selected" }, { status: 400 });
 
     if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_archive") {
@@ -342,10 +345,26 @@ export default function ReviewsPage() {
           </BlockStack>
         </Card>
 
+        <Card>
+          <BlockStack gap="200">
+            <Text as="p" variant="bodyMd">Bulk actions (reliable mode: check rows then run)</Text>
+            <Form method="post" id="bulk-fallback-form">
+              <InlineStack gap="200" wrap>
+                <select name="intent" defaultValue="bulk_publish" style={{ padding: 8 }}>
+                  <option value="bulk_publish">Bulk publish</option>
+                  <option value="bulk_unpublish">Bulk unpublish</option>
+                  <option value="bulk_archive">Bulk archive</option>
+                </select>
+                <Button submit variant="primary">Run on checked reviews</Button>
+              </InlineStack>
+            </Form>
+          </BlockStack>
+        </Card>
+
         {selectedIds.length ? (
           <Card>
             <BlockStack gap="200">
-              <Text as="p" variant="bodyMd">{selectedIds.length} selected</Text>
+              <Text as="p" variant="bodyMd">{selectedIds.length} selected (interactive mode)</Text>
               <InlineStack gap="200" wrap>
                 <Form method="post"><input type="hidden" name="intent" value="bulk_publish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit>Bulk publish</Button></Form>
                 <Form method="post"><input type="hidden" name="intent" value="bulk_unpublish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit>Bulk unpublish</Button></Form>
@@ -379,6 +398,9 @@ export default function ReviewsPage() {
                     <InlineStack gap="200" blockAlign="center" wrap>
                       <input
                         type="checkbox"
+                        name="review_ids"
+                        value={review.id}
+                        form="bulk-fallback-form"
                         checked={selectedIds.includes(review.id)}
                         onChange={(e) => {
                           if (e.currentTarget.checked) setSelectedIds(Array.from(new Set([...selectedIds, review.id])));
@@ -450,6 +472,23 @@ export default function ReviewsPage() {
           })}
         </BlockStack>
       </BlockStack>
+
+      <Card>
+        <BlockStack gap="200">
+          <Text as="h3" variant="headingSm">Quick create review (reliable mode)</Text>
+          <Form method="post">
+            <input type="hidden" name="intent" value="create" />
+            <BlockStack gap="200">
+              <label><Text as="span" variant="bodyMd">Product GID</Text><input name="product_gid" required placeholder="gid://shopify/Product/..." style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <label><Text as="span" variant="bodyMd">Reviewer</Text><input name="reviewer_name" required style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <label><Text as="span" variant="bodyMd">Rating (1-5)</Text><input name="rating" type="number" min={1} max={5} defaultValue={5} required style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <label><Text as="span" variant="bodyMd">Title</Text><input name="title" style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <label><Text as="span" variant="bodyMd">Body</Text><textarea name="body" rows={4} required style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <InlineStack align="end"><Button submit variant="primary">Create review now</Button></InlineStack>
+            </BlockStack>
+          </Form>
+        </BlockStack>
+      </Card>
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create review" primaryAction={undefined}>
         <Modal.Section>
