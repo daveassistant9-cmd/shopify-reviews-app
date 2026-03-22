@@ -100,10 +100,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     productOptions = (payload?.data?.products?.nodes || []).map((p: any) => ({ gid: p.id, title: p.title || p.handle || p.id, handle: p.handle || "" }));
   } catch {}
 
+  const dbg = {
+    enabled: url.searchParams.get("debug") === "1",
+    status: url.searchParams.get("ocdbg_status") || "",
+    message: url.searchParams.get("ocdbg_msg") || "",
+    intent: url.searchParams.get("ocdbg_intent") || "",
+    selected: url.searchParams.get("ocdbg_selected") || "",
+    shop: session.shop,
+    productOptionsCount: productOptions.length,
+    reviewsCount: reviews.length,
+  };
+
   return json({
     reviews,
     aggregateByProduct,
     productOptions,
+    dbg,
     filters: { productGid, productText, rating: ratingRaw, status: statusRaw },
     adminProductBase: `https://admin.shopify.com/store/${session.shop.replace(".myshopify.com", "")}/products/`,
   });
@@ -114,7 +126,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const { session } = await authenticate.admin(request);
     const formData = await request.formData();
     const url = new URL(request.url);
-    const backTo = `/app/reviews${url.search || ""}`;
+    const baseParams = new URLSearchParams(url.search);
+    baseParams.set("debug", baseParams.get("debug") || "1");
+    const mkBack = (status: "ok" | "error", msg: string, intent: string, selected?: number) => {
+      const p = new URLSearchParams(baseParams);
+      p.set("ocdbg_status", status);
+      p.set("ocdbg_msg", msg.slice(0, 180));
+      p.set("ocdbg_intent", intent || "");
+      if (typeof selected === "number") p.set("ocdbg_selected", String(selected));
+      return `/app/reviews?${p.toString()}`;
+    };
+    const backTo = `/app/reviews?${baseParams.toString()}`;
     const intent = String(formData.get("intent") || "");
 
   if (intent === "create") {
@@ -136,11 +158,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const errors = validateCreateReviewInput(input);
     if (errors.length) {
-      return redirect(backTo);
+      return redirect(mkBack("ok", `Reassigned ${ids.length} reviews`, intent, ids.length));
     }
 
-    await createReview(input);
-    return redirect(backTo);
+    const created = await createReview(input);
+    return redirect(mkBack("ok", `Created review ${created.id}`, intent));
   }
 
   if (intent === "publish" || intent === "unpublish") {
@@ -148,7 +170,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const nextStatus = intent === "publish" ? ReviewStatus.published : ReviewStatus.unpublished;
 
     await setReviewStatus({ reviewId, shopId: session.shop, nextStatus });
-    return redirect(backTo);
+    return redirect(mkBack("ok", `Updated review ${reviewId}`, intent, 1));
   }
 
   if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_reassign" || intent === "bulk_archive") {
@@ -159,21 +181,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       .map((v) => v.trim())
       .filter(Boolean);
     const ids = Array.from(new Set(idsFromAll));
-    if (!ids.length) return redirect(backTo);
+    if (!ids.length) return redirect(mkBack("error", "No reviews selected", intent, 0));
 
     if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_archive") {
       const nextStatus = intent === "bulk_publish" ? ReviewStatus.published : ReviewStatus.unpublished;
       for (const id of ids) {
         await setReviewStatus({ reviewId: id, shopId: session.shop, nextStatus });
       }
-      return redirect(backTo);
+      return redirect(mkBack("ok", `Bulk updated ${ids.length} reviews`, intent, ids.length));
     }
 
     if (intent === "bulk_reassign") {
       const targetGid = String(formData.get("bulk_product_gid") || "");
       const targetTitle = String(formData.get("bulk_product_title_snapshot") || "") || null;
       const targetHandle = String(formData.get("bulk_product_handle_snapshot") || "") || null;
-      if (!targetGid) return redirect(backTo);
+      if (!targetGid) return redirect(mkBack("error", "Target product required", intent, ids.length));
 
       for (const id of ids) {
         const existing = await prisma.reviews.findFirst({ where: { id, shop_id: session.shop } });
@@ -197,7 +219,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      return redirect(backTo);
+      return redirect(mkBack("ok", `Edited review ${reviewId}`, intent, 1));
     }
   }
 
@@ -214,7 +236,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       : ReviewStatus.draft;
 
     if (!reviewer_name.trim() || !body.trim() || !product_gid.trim() || !Number.isInteger(rating) || rating < 1 || rating > 5) {
-      return redirect(backTo);
+      return redirect(mkBack("error", "Invalid edit payload", intent));
     }
 
     await updateReviewById({
@@ -234,12 +256,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    return redirect(backTo);
+    return redirect(mkBack("ok", "Action completed", intent));
   }
 
-    return redirect(backTo);
+    return redirect(mkBack("error", "Unknown intent", intent));
   } catch (error: any) {
-    return redirect('/app/reviews');
+    return redirect(mkBack("error", error?.message || "Action failed", intent));
   }
 };
 
@@ -250,7 +272,7 @@ const badgeTone = (status: ReviewStatus): "success" | "attention" | "info" => {
 };
 
 export default function ReviewsPage() {
-  const { reviews, aggregateByProduct, productOptions, filters, adminProductBase } = useLoaderData<typeof loader>();
+  const { reviews, aggregateByProduct, productOptions, dbg, filters, adminProductBase } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const embeddedKeys = ["shop", "host", "embedded", "hmac", "timestamp", "id_token", "locale", "session"];
@@ -307,6 +329,16 @@ export default function ReviewsPage() {
     <Page>
       <TitleBar title="Reviews" />
       <BlockStack gap="400">
+        {dbg?.enabled ? (
+          <Card>
+            <BlockStack gap="150">
+              <Text as="p" variant="headingSm">Debug panel</Text>
+              <Text as="p" variant="bodySm">status: {dbg.status || 'n/a'} · intent: {dbg.intent || 'n/a'} · selected: {dbg.selected || '0'}</Text>
+              <Text as="p" variant="bodySm">message: {dbg.message || 'none'}</Text>
+              <Text as="p" variant="bodySm">shop: {dbg.shop} · reviews: {dbg.reviewsCount} · product options: {dbg.productOptionsCount}</Text>
+            </BlockStack>
+          </Card>
+        ) : null}
         <Card>
           <BlockStack gap="300">
             <InlineStack align="space-between" blockAlign="center">
