@@ -27,7 +27,9 @@ async function ensureTables() {
     ALTER TABLE review_media
       ADD COLUMN IF NOT EXISTS shopify_file_id text,
       ADD COLUMN IF NOT EXISTS source_url text,
+      ADD COLUMN IF NOT EXISTS source_type text,
       ADD COLUMN IF NOT EXISTS mirror_status text,
+      ADD COLUMN IF NOT EXISTS upload_status text,
       ADD COLUMN IF NOT EXISTS mirror_error text
   `);
 
@@ -147,7 +149,7 @@ async function main() {
       if (mirrored.reused) reused += 1;
       await prisma.$executeRawUnsafe(
         `UPDATE review_media
-         SET source_url = $2, media_url = $3, shopify_file_id = $4, mirror_status='ready', mirror_error=NULL, updated_at=now()
+         SET source_url = $2, source_type='external_url', media_url = $3, shopify_file_id = $4, mirror_status='ready', upload_status='ready', mirror_error=NULL, updated_at=now()
          WHERE id = $1::uuid`,
         r.id,
         r.media_url,
@@ -158,7 +160,7 @@ async function main() {
     } catch (e) {
       await prisma.$executeRawUnsafe(
         `UPDATE review_media
-         SET source_url = COALESCE(source_url, media_url), mirror_status='failed', mirror_error=$2, updated_at=now()
+         SET source_url = COALESCE(source_url, media_url), source_type='external_url', mirror_status='failed', upload_status='failed', mirror_error=$2, updated_at=now()
          WHERE id = $1::uuid`,
         r.id,
         String(e?.message || e),

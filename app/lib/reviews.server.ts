@@ -33,6 +33,7 @@ export type CreateReviewInput = {
   body: string;
   image_url?: string | null;
   media_urls?: string[];
+  media_items?: Array<{ media_url: string; shopify_file_id?: string | null; source_url?: string | null; source_type?: string | null; mirror_status?: string | null; mirror_error?: string | null }>;
   submitted_at?: Date | null;
 };
 
@@ -58,7 +59,8 @@ export function validateCreateReviewInput(input: CreateReviewInput) {
 }
 
 export async function createReview(input: CreateReviewInput) {
-  const mediaUrls = (input.media_urls || []).filter(Boolean);
+  const mediaItems = (input.media_items || []).filter((m) => !!m?.media_url);
+  const mediaUrls = mediaItems.length ? mediaItems.map((m) => m.media_url) : (input.media_urls || []).filter(Boolean);
   const firstImage = input.image_url ?? mediaUrls[0] ?? null;
 
   const review = await prisma.reviews.create({
@@ -78,28 +80,21 @@ export async function createReview(input: CreateReviewInput) {
   });
 
   if (mediaUrls.length) {
-    const reviewMediaDelegate = prismaAny.reviewMedia;
-    if (reviewMediaDelegate?.createMany) {
-      await reviewMediaDelegate.createMany({
-        data: mediaUrls.map((url, idx) => ({
-          review_id: review.id,
-          shop_id: input.shopId,
-          media_url: url,
-          media_type: "image",
-          sort_order: idx,
-        })),
-      });
-    } else {
-      for (let idx = 0; idx < mediaUrls.length; idx += 1) {
-        await prisma.$executeRawUnsafe(
-          `INSERT INTO "review_media" (id, review_id, shop_id, media_url, media_type, sort_order, created_at, updated_at)
-           VALUES (gen_random_uuid(), $1::uuid, $2, $3, 'image', $4, now(), now())`,
-          review.id,
-          input.shopId,
-          mediaUrls[idx],
-          idx,
-        );
-      }
+    for (let idx = 0; idx < mediaUrls.length; idx += 1) {
+      const meta = mediaItems[idx] || null;
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "review_media" (id, review_id, shop_id, media_url, media_type, sort_order, shopify_file_id, source_url, source_type, mirror_status, upload_status, mirror_error, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1::uuid, $2, $3, 'image', $4, $5, $6, $7, $8, $8, $9, now(), now())`,
+        review.id,
+        input.shopId,
+        mediaUrls[idx],
+        idx,
+        meta?.shopify_file_id || null,
+        meta?.source_url || null,
+        meta?.source_type || null,
+        meta?.mirror_status || (meta ? 'ready' : null),
+        meta?.mirror_error || null,
+      );
     }
   }
 
@@ -281,13 +276,15 @@ export async function updateReviewById({
     product_handle_snapshot?: string | null;
     product_title_snapshot?: string | null;
     media_urls?: string[];
+    media_items?: Array<{ media_url: string; shopify_file_id?: string | null; source_url?: string | null; source_type?: string | null; mirror_status?: string | null; mirror_error?: string | null }>;
     status: ReviewStatus;
   };
 }) {
   const existing = await getReviewById(shopId, reviewId);
   if (!existing) throw new Error("Review not found");
 
-  const mediaUrls = (input.media_urls || []).filter(Boolean);
+  const mediaItems = (input.media_items || []).filter((m) => !!m?.media_url);
+  const mediaUrls = mediaItems.length ? mediaItems.map((m) => m.media_url) : (input.media_urls || []).filter(Boolean);
 
   const updated = await prisma.reviews.update({
     where: { id: reviewId },
@@ -306,33 +303,23 @@ export async function updateReviewById({
     },
   });
 
-  if (input.media_urls) {
-    const reviewMediaDelegate = prismaAny.reviewMedia;
-    if (reviewMediaDelegate?.deleteMany && reviewMediaDelegate?.createMany) {
-      await reviewMediaDelegate.deleteMany({ where: { review_id: reviewId } });
-      if (mediaUrls.length) {
-        await reviewMediaDelegate.createMany({
-          data: mediaUrls.map((url, idx) => ({
-            review_id: reviewId,
-            shop_id: shopId,
-            media_url: url,
-            media_type: "image",
-            sort_order: idx,
-          })),
-        });
-      }
-    } else {
-      await prisma.$executeRawUnsafe(`DELETE FROM "review_media" WHERE review_id = $1::uuid`, reviewId);
-      for (let idx = 0; idx < mediaUrls.length; idx += 1) {
-        await prisma.$executeRawUnsafe(
-          `INSERT INTO "review_media" (id, review_id, shop_id, media_url, media_type, sort_order, created_at, updated_at)
-           VALUES (gen_random_uuid(), $1::uuid, $2, $3, 'image', $4, now(), now())`,
-          reviewId,
-          shopId,
-          mediaUrls[idx],
-          idx,
-        );
-      }
+  if (input.media_urls || input.media_items) {
+    await prisma.$executeRawUnsafe(`DELETE FROM "review_media" WHERE review_id = $1::uuid`, reviewId);
+    for (let idx = 0; idx < mediaUrls.length; idx += 1) {
+      const meta = mediaItems[idx] || null;
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "review_media" (id, review_id, shop_id, media_url, media_type, sort_order, shopify_file_id, source_url, source_type, mirror_status, upload_status, mirror_error, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1::uuid, $2, $3, 'image', $4, $5, $6, $7, $8, $8, $9, now(), now())`,
+        reviewId,
+        shopId,
+        mediaUrls[idx],
+        idx,
+        meta?.shopify_file_id || null,
+        meta?.source_url || null,
+        meta?.source_type || null,
+        meta?.mirror_status || (meta ? 'ready' : null),
+        meta?.mirror_error || null,
+      );
     }
   }
 

@@ -24,6 +24,7 @@ import {
   validateCreateReviewInput,
 } from "../lib/reviews.server";
 import { ProductSearchPicker, type ProductOption } from "../components/ProductSearchPicker";
+import { ingestMediaToShopify } from "../lib/review-media-mirror.server";
 
 const productIdFromGid = (gid: string) => {
   const m = gid.match(/\/Product\/(\d+)/);
@@ -137,7 +138,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
-    const { session } = await authenticate.admin(request);
+    const { session, admin } = await authenticate.admin(request);
     const formData = await request.formData();
     const url = new URL(request.url);
     const baseParams = new URLSearchParams(url.search);
@@ -157,6 +158,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const rating = Number(formData.get("rating"));
     const mediaFromText = parseMediaUrlsField(String(formData.get("media_urls") || ""));
     const mediaFromFiles = await filesToDataUrls(formData, "media_files");
+    const mediaIngested = await ingestMediaToShopify({
+      shopId: session.shop,
+      admin: admin as any,
+      externalUrls: mediaFromText.filter((u) => /^https?:\/\//i.test(u)),
+      dataUrls: mediaFromFiles.concat(mediaFromText.filter((u) => /^data:image\//i.test(u))),
+      maxItems: 5,
+    });
+
     const input = {
       shopId: session.shop,
       product_gid: String(formData.get("product_gid") || ""),
@@ -166,7 +175,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       rating,
       title: (formData.get("title") as string) || null,
       body: String(formData.get("body") || ""),
-      media_urls: [...mediaFromText, ...mediaFromFiles],
+      media_items: mediaIngested.succeeded.map((m) => ({
+        media_url: m.shopifyUrl,
+        shopify_file_id: m.shopifyFileId,
+        source_url: m.sourceUrl,
+        source_type: m.sourceType,
+        mirror_status: m.status,
+        mirror_error: m.error,
+      })),
       submitted_at: formData.get("submitted_at")
         ? new Date(String(formData.get("submitted_at")))
         : null,
@@ -174,7 +190,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const errors = validateCreateReviewInput(input);
     if (errors.length) {
-      return redirect(mkBack("ok", `Reassigned ${ids.length} reviews`, intent, ids.length));
+      return redirect(mkBack("error", errors.join(', '), intent));
     }
 
     const created = await createReview(input);
@@ -235,7 +251,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      return redirect(mkBack("ok", `Edited review ${reviewId}`, intent, 1));
+      return redirect(mkBack("ok", `Reassigned ${ids.length} reviews`, intent, ids.length));
     }
   }
 

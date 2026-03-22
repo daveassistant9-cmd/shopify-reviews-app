@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import prisma from "../db.server";
 import { DEFAULT_WIDGET_SETTINGS, getWidgetSettings } from "../lib/widget-settings.server";
 import { createReview, validateCreateReviewInput } from "../lib/reviews.server";
+import { ingestMediaToShopify } from "../lib/review-media-mirror.server";
 
 function corsHeaders(origin: string | null) {
   return {
@@ -168,19 +169,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const product_gid = productId ? `gid://shopify/Product/${productId}` : "";
 
   const imageFiles = formData.getAll("images");
-  const media_urls: string[] = [];
+  const dataUrls: string[] = [];
   for (const image of imageFiles) {
     if (!(image instanceof File) || image.size <= 0) continue;
     if (!image.type.startsWith("image/")) {
       return json({ ok: false, error: "Only image files are allowed" }, { status: 400, headers: corsHeaders(origin) });
     }
-    if (image.size > 2 * 1024 * 1024) {
-      return json({ ok: false, error: "Image too large (max 2MB)" }, { status: 400, headers: corsHeaders(origin) });
+    if (image.size > 8 * 1024 * 1024) {
+      return json({ ok: false, error: "Image too large (max 8MB)" }, { status: 400, headers: corsHeaders(origin) });
     }
     const buffer = Buffer.from(await image.arrayBuffer());
-    media_urls.push(`data:${image.type};base64,${buffer.toString("base64")}`);
-    if (media_urls.length >= 5) break;
+    dataUrls.push(`data:${image.type};base64,${buffer.toString("base64")}`);
+    if (dataUrls.length >= 5) break;
   }
+
+  const mediaIngested = await ingestMediaToShopify({
+    shopId: shop,
+    dataUrls,
+    maxItems: 5,
+  });
 
   const input = {
     shopId: shop,
@@ -189,7 +196,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     rating,
     title,
     body,
-    media_urls,
+    media_items: mediaIngested.succeeded.map((m) => ({
+      media_url: m.shopifyUrl,
+      shopify_file_id: m.shopifyFileId,
+      source_url: m.sourceUrl,
+      source_type: m.sourceType,
+      mirror_status: m.status,
+      mirror_error: m.error,
+    })),
     submitted_at: new Date(),
   };
 

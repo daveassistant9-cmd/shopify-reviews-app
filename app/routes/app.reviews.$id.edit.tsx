@@ -6,6 +6,7 @@ import { BlockStack, Button, Card, InlineStack, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { getReviewById, updateReviewById } from "../lib/reviews.server";
 import { ProductSearchPicker, type ProductOption } from "../components/ProductSearchPicker";
+import { ingestMediaToShopify } from "../lib/review-media-mirror.server";
 
 const parseMediaUrlsField = (raw: string) => {
   const chunks = raw
@@ -57,7 +58,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const id = params.id;
   if (!id) return json({ ok: false, error: "Missing review id" }, { status: 400 });
 
@@ -66,6 +67,15 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   const mediaFromText = parseMediaUrlsField(String(formData.get("media_urls") || ""));
   const mediaFromFiles = await filesToDataUrls(formData, "media_files");
+
+  const mediaIngested = await ingestMediaToShopify({
+    shopId: session.shop,
+    admin: admin as any,
+    reviewId: id,
+    externalUrls: mediaFromText.filter((u) => /^https?:\/\//i.test(u)),
+    dataUrls: mediaFromFiles.concat(mediaFromText.filter((u) => /^data:image\//i.test(u))),
+    maxItems: 5,
+  });
 
   const payload = {
     product_gid: String(formData.get("product_gid") || ""),
@@ -76,7 +86,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     submitted_at: formData.get("submitted_at") ? new Date(String(formData.get("submitted_at"))) : null,
     product_handle_snapshot: String(formData.get("product_handle_snapshot") || "") || null,
     product_title_snapshot: String(formData.get("product_title_snapshot") || "") || null,
-    media_urls: [...mediaFromText, ...mediaFromFiles],
+    media_items: mediaIngested.succeeded.map((m) => ({
+      media_url: m.shopifyUrl,
+      shopify_file_id: m.shopifyFileId,
+      source_url: m.sourceUrl,
+      source_type: m.sourceType,
+      mirror_status: m.status,
+      mirror_error: m.error,
+    })),
     status: String(formData.get("status") || "draft") as any,
   };
 
