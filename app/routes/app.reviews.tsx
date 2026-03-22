@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { Outlet, useLoaderData, useNavigation, Form, useLocation, useSearchParams } from "@remix-run/react";
 import { useState } from "react";
 import {
@@ -113,6 +113,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request);
     const formData = await request.formData();
+    const url = new URL(request.url);
+    const backTo = `/app/reviews${url.search || ""}`;
     const intent = String(formData.get("intent") || "");
 
   if (intent === "create") {
@@ -134,11 +136,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const errors = validateCreateReviewInput(input);
     if (errors.length) {
-      return json({ ok: false, errors }, { status: 400 });
+      return redirect(backTo);
     }
 
-    const review = await createReview(input);
-    return json({ ok: true, reviewId: review.id });
+    await createReview(input);
+    return redirect(backTo);
   }
 
   if (intent === "publish" || intent === "unpublish") {
@@ -146,7 +148,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const nextStatus = intent === "publish" ? ReviewStatus.published : ReviewStatus.unpublished;
 
     await setReviewStatus({ reviewId, shopId: session.shop, nextStatus });
-    return json({ ok: true });
+    return redirect(backTo);
   }
 
   if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_reassign" || intent === "bulk_archive") {
@@ -157,21 +159,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       .map((v) => v.trim())
       .filter(Boolean);
     const ids = Array.from(new Set(idsFromAll));
-    if (!ids.length) return json({ ok: false, error: "No reviews selected" }, { status: 400 });
+    if (!ids.length) return redirect(backTo);
 
     if (intent === "bulk_publish" || intent === "bulk_unpublish" || intent === "bulk_archive") {
       const nextStatus = intent === "bulk_publish" ? ReviewStatus.published : ReviewStatus.unpublished;
       for (const id of ids) {
         await setReviewStatus({ reviewId: id, shopId: session.shop, nextStatus });
       }
-      return json({ ok: true, updated: ids.length });
+      return redirect(backTo);
     }
 
     if (intent === "bulk_reassign") {
       const targetGid = String(formData.get("bulk_product_gid") || "");
       const targetTitle = String(formData.get("bulk_product_title_snapshot") || "") || null;
       const targetHandle = String(formData.get("bulk_product_handle_snapshot") || "") || null;
-      if (!targetGid) return json({ ok: false, error: "Target product required" }, { status: 400 });
+      if (!targetGid) return redirect(backTo);
 
       for (const id of ids) {
         const existing = await prisma.reviews.findFirst({ where: { id, shop_id: session.shop } });
@@ -195,7 +197,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      return json({ ok: true, updated: ids.length });
+      return redirect(backTo);
     }
   }
 
@@ -212,7 +214,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       : ReviewStatus.draft;
 
     if (!reviewer_name.trim() || !body.trim() || !product_gid.trim() || !Number.isInteger(rating) || rating < 1 || rating > 5) {
-      return json({ ok: false, error: "Invalid edit payload" }, { status: 400 });
+      return redirect(backTo);
     }
 
     await updateReviewById({
@@ -232,12 +234,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    return json({ ok: true });
+    return redirect(backTo);
   }
 
-    return json({ ok: false, error: "Unknown intent" }, { status: 400 });
+    return redirect(backTo);
   } catch (error: any) {
-    return json({ ok: false, error: error?.message || "Action failed" }, { status: 500 });
+    return redirect('/app/reviews');
   }
 };
 
@@ -450,7 +452,6 @@ export default function ReviewsPage() {
                         name="review_ids"
                         value={review.id}
                         form="bulk-fallback-form"
-                        checked={selectedIds.includes(review.id)}
                         onChange={(e) => {
                           if (e.currentTarget.checked) setSelectedIds(Array.from(new Set([...selectedIds, review.id])));
                           else setSelectedIds(selectedIds.filter((id) => id !== review.id));
