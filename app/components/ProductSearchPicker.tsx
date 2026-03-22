@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "@remix-run/react";
 import { Text } from "@shopify/polaris";
 
 type ProductOption = { gid: string; title: string; handle: string };
@@ -13,6 +14,7 @@ export function ProductSearchPicker({
   onChange: (p: ProductOption | null) => void;
 }) {
   const [q, setQ] = useState(value?.title || "");
+  const location = useLocation();
   const [items, setItems] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -30,7 +32,9 @@ export function ProductSearchPicker({
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`/app/api/products/search?q=${encodeURIComponent(term)}`);
+        const current = new URLSearchParams(location.search);
+        current.set("q", term);
+        const res = await fetch(`/app/api/products/search?${current.toString()}`);
         const text = await res.text();
         let data: any = null;
         try {
@@ -54,7 +58,7 @@ export function ProductSearchPicker({
       alive = false;
       clearTimeout(t);
     };
-  }, [q]);
+  }, [q, location.search]);
 
   return (
     <div style={{ position: "relative", minWidth: 320 }}>

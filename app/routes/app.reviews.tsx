@@ -426,7 +426,7 @@ export default function ReviewsPage() {
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create review" primaryAction={undefined}>
         <Modal.Section>
-          <Form method="post" onSubmit={() => setCreateOpen(false)}>
+          <Form method="post">
             <input type="hidden" name="intent" value="create" />
             <input type="hidden" name="media_urls" value={createMedia.join("\n")} />
             <BlockStack gap="300">
