@@ -458,11 +458,37 @@
       }
 
       const lightbox = mount.querySelector('[data-rw-lightbox]');
+      const modalEl = mount.querySelector('[data-review-modal]');
       const mainImage = mount.querySelector('[data-rw-main-image]');
       const thumbsEl = mount.querySelector('[data-rw-thumbs]');
       const detailsEl = mount.querySelector('[data-rw-details]');
       let lbReviewIndex = 0;
       let lbMediaIndex = 0;
+
+      const portalToBody = (el) => {
+        if (!el || el.dataset.ocRwPortaled === '1') return;
+        document.body.appendChild(el);
+        el.dataset.ocRwPortaled = '1';
+      };
+      portalToBody(lightbox);
+      portalToBody(modalEl);
+
+      const openOverlay = (el, closeSelector) => {
+        if (!el) return;
+        el.hidden = false;
+        requestAnimationFrame(() => el.classList.add('is-open'));
+        const panel = el.querySelector('.oc-rw-lightbox-panel, .oc-rw-modal-panel');
+        if (panel) panel.scrollTop = 0;
+        const closeBtn = el.querySelector(closeSelector);
+        if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
+        lockScroll();
+      };
+      const closeOverlay = (el) => {
+        if (!el || el.hidden) return;
+        el.classList.remove('is-open');
+        setTimeout(() => { el.hidden = true; }, 170);
+        unlockScroll();
+      };
 
       const renderLightbox = () => {
         const review = reviews[lbReviewIndex];
@@ -497,20 +523,14 @@
         lbReviewIndex = Number(reviewIndex || 0);
         lbMediaIndex = Number(mediaIndex || 0);
         renderLightbox();
-        lightbox.hidden = false;
-        const panel = lightbox.querySelector('.oc-rw-lightbox-panel');
-        if (panel) panel.scrollTop = 0;
-        const closeBtn = lightbox.querySelector('[data-rw-close-lightbox]');
-        if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
-        lockScroll();
+        openOverlay(lightbox, '.oc-rw-lightbox-close');
       };
 
-      mount.querySelectorAll('[data-rw-close-lightbox]').forEach((btn) => {
+      (lightbox ? lightbox.querySelectorAll('.oc-rw-lightbox-close') : []).forEach((btn) => {
         if (btn.__rwCloseBound) return;
         btn.addEventListener('click', (ev) => {
           ev.preventDefault();
-          if (lightbox) lightbox.hidden = true;
-          unlockScroll();
+          closeOverlay(lightbox);
         });
         btn.__rwCloseBound = true;
       });
@@ -539,29 +559,29 @@
           const target = ev.target instanceof Element ? ev.target : null;
           if (!target) return;
           const open = target.closest('[data-open-review-modal]');
-          const close = target.closest('[data-close-review-modal]');
+          const closeBtn = target.closest('button[data-close-review-modal]');
           const lightboxOpen = target.closest('[data-rw-open-lightbox]');
-          const modalEl = mount.querySelector('[data-review-modal]');
           if (open && modalEl) {
             ev.preventDefault();
-            modalEl.hidden = false;
-            const panel = modalEl.querySelector('.oc-rw-modal-panel');
-            if (panel) panel.scrollTop = 0;
-            const closeBtn = modalEl.querySelector('[data-close-review-modal]');
-            if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
-            lockScroll();
+            openOverlay(modalEl, 'button[data-close-review-modal]');
           }
-          if (close && modalEl) {
+          if (closeBtn && modalEl) {
             ev.preventDefault();
-            modalEl.hidden = true;
-            unlockScroll();
+            closeOverlay(modalEl);
           }
           if (lightboxOpen) {
             ev.preventDefault();
             ev.stopPropagation();
             openLightbox(lightboxOpen.getAttribute('data-review-index'), lightboxOpen.getAttribute('data-media-index'));
           }
+        });
+        mount.__rwDelegatedClicksBound = true;
+      }
 
+      if (lightbox && !lightbox.__rwThumbDelegatedBound) {
+        lightbox.addEventListener('click', (ev) => {
+          const target = ev.target instanceof Element ? ev.target : null;
+          if (!target) return;
           const thumb = target.closest('[data-rw-thumb]');
           if (thumb) {
             ev.preventDefault();
@@ -569,7 +589,7 @@
             renderLightbox();
           }
         });
-        mount.__rwDelegatedClicksBound = true;
+        lightbox.__rwThumbDelegatedBound = true;
       }
 
       if (form) {

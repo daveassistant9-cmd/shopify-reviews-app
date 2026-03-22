@@ -211,27 +211,42 @@
 .oc-rw-text { font-size: var(--rw-body-size); line-height: 1.48; color: var(--rw-text); font-weight: var(--rw-body-weight, 400); }
 .oc-rw-empty { color: var(--rw-meta); font-size: var(--rw-body-size); padding-top: 12px; font-weight: var(--rw-meta-weight, 500); }
 
-.oc-rw-modal[hidden] { display: none; }
-.oc-rw-modal { position: fixed; inset: 0; z-index: 9999; }
-
-.oc-rw-lightbox[hidden] { display: none; }
-.oc-rw-lightbox { position: fixed; inset: 0; z-index: 10000; }
-body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
-.oc-rw-lightbox-backdrop {
+.oc-rw-modal[hidden], .oc-rw-lightbox[hidden] { display: none; }
+.oc-rw-modal,
+.oc-rw-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+}
+body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; overscroll-behavior: none; }
+.oc-rw-lightbox-backdrop,
+.oc-rw-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.84);
+  background: rgba(2, 6, 23, 0.72);
   backdrop-filter: blur(1px);
 }
 .oc-rw-lightbox-panel {
   position: relative;
   width: min(96vw, 1040px);
-  max-height: 92vh;
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   overflow: auto;
-  margin: 3vh auto;
+  margin: 0;
   background: #fff;
   border-radius: 14px;
   padding: 14px;
+  opacity: 0;
+  transform: translateY(8px) scale(.995);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.oc-rw-lightbox.is-open .oc-rw-lightbox-panel,
+.oc-rw-modal.is-open .oc-rw-modal-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 .oc-rw-lightbox-close {
   position: fixed;
@@ -273,17 +288,20 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
 .oc-rw-lightbox-thumb img { width: 56px; height: 56px; object-fit: cover; border-radius: 7px; display: block; }
 .oc-rw-lightbox-thumb.is-active { border-color: var(--rw-star); box-shadow: 0 0 0 2px rgba(245,158,11,.25); }
 .oc-rw-lightbox-details { padding-top: 20px; }
-.oc-rw-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
 .oc-rw-modal-panel {
   position: relative;
   width: min(92vw, 520px);
-  max-height: min(92vh, 760px);
-  margin: 4vh auto;
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  margin: 0;
   background: #fff;
   border-radius: 14px;
   padding: 14px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px) scale(.995);
+  transition: opacity .16s ease, transform .16s ease;
 }
 .oc-rw-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-weight: var(--rw-modal-title-weight, 700); position: sticky; top: 0; background: #fff; padding-top: 2px; z-index: 2; }
 .oc-rw-modal-subtitle { color: var(--rw-meta); font-size: var(--rw-meta-size); margin-bottom: 8px; font-weight: var(--rw-meta-weight, 500); }
@@ -327,8 +345,8 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
 
 @media (max-width: 768px) {
   .oc-rw-modal-panel {
-    width: 100vw;
-    max-height: 100vh;
+    width: 100%;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
     margin: 0;
     border-radius: 0;
     padding: 12px;
@@ -342,16 +360,15 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
   .oc-rw-card-body { padding: 10px 10px 11px; }
 
   .oc-rw-lightbox-panel {
-    width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
+    width: 100%;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
     margin: 0;
     padding: 12px;
     border-radius: 0;
   }
   .oc-rw-lightbox-close {
     right: 12px;
-    top: 12px;
+    top: max(12px, env(safe-area-inset-top));
     width: 42px;
     height: 42px;
   }
