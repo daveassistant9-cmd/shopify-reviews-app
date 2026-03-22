@@ -19,6 +19,7 @@ export function ProductSearchPicker({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const [refreshSeq, setRefreshSeq] = useState(0);
 
   const selectedLabel = useMemo(() => {
     if (!value) return "";
@@ -58,14 +59,17 @@ export function ProductSearchPicker({
       alive = false;
       clearTimeout(t);
     };
-  }, [q, location.search]);
+  }, [q, location.search, refreshSeq]);
 
   return (
     <div style={{ position: "relative", minWidth: 320 }}>
       <Text as="span" variant="bodyMd">{label}</Text>
       <input
         value={q}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true);
+          setRefreshSeq((n) => n + 1);
+        }}
         onChange={(e) => {
           setQ(e.currentTarget.value);
           setOpen(true);

@@ -382,29 +382,27 @@ export default function ReviewsPage() {
           </BlockStack>
         </Card>
 
-        {selectedIds.length ? (
-          <Card>
-            <BlockStack gap="200">
-              <Text as="p" variant="bodyMd">{selectedIds.length} selected (interactive mode)</Text>
+        <Card>
+          <BlockStack gap="200">
+            <Text as="p" variant="bodyMd">{selectedIds.length} selected (interactive mode)</Text>
+            <InlineStack gap="200" wrap>
+              <Form method="post"><input type="hidden" name="intent" value="bulk_publish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk publish</Button></Form>
+              <Form method="post"><input type="hidden" name="intent" value="bulk_unpublish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit disabled={!selectedIds.length}>Bulk unpublish</Button></Form>
+              <Form method="post"><input type="hidden" name="intent" value="bulk_archive" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit tone="critical" disabled={!selectedIds.length}>Bulk archive</Button></Form>
+            </InlineStack>
+            <Form method="post">
+              <input type="hidden" name="intent" value="bulk_reassign" />
+              <input type="hidden" name="review_ids" value={selectedIds.join(',')} />
+              <input type="hidden" name="bulk_product_gid" value={bulkProduct?.gid || ''} />
+              <input type="hidden" name="bulk_product_title_snapshot" value={bulkProduct?.title || ''} />
+              <input type="hidden" name="bulk_product_handle_snapshot" value={bulkProduct?.handle || ''} />
               <InlineStack gap="200" wrap>
-                <Form method="post"><input type="hidden" name="intent" value="bulk_publish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit>Bulk publish</Button></Form>
-                <Form method="post"><input type="hidden" name="intent" value="bulk_unpublish" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit>Bulk unpublish</Button></Form>
-                <Form method="post"><input type="hidden" name="intent" value="bulk_archive" /><input type="hidden" name="review_ids" value={selectedIds.join(',')} /><Button submit tone="critical">Bulk archive</Button></Form>
+                <ProductSearchPicker label="Bulk reassign product" value={bulkProduct} onChange={setBulkProduct} />
+                <Button submit variant="primary" disabled={!selectedIds.length}>Apply product reassignment</Button>
               </InlineStack>
-              <Form method="post">
-                <input type="hidden" name="intent" value="bulk_reassign" />
-                <input type="hidden" name="review_ids" value={selectedIds.join(',')} />
-                <input type="hidden" name="bulk_product_gid" value={bulkProduct?.gid || ''} />
-                <input type="hidden" name="bulk_product_title_snapshot" value={bulkProduct?.title || ''} />
-                <input type="hidden" name="bulk_product_handle_snapshot" value={bulkProduct?.handle || ''} />
-                <InlineStack gap="200" wrap>
-                  <ProductSearchPicker label="Bulk reassign product" value={bulkProduct} onChange={setBulkProduct} />
-                  <Button submit variant="primary">Apply product reassignment</Button>
-                </InlineStack>
-              </Form>
-            </BlockStack>
-          </Card>
-        ) : null}
+            </Form>
+          </BlockStack>
+        </Card>
 
         <BlockStack gap="250">
           {reviews.map((review) => {
