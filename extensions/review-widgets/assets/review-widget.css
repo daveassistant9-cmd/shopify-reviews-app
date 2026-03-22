@@ -102,15 +102,27 @@
 .oc-rw-break-lines { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
 .oc-rw-line {
   display: grid;
-  grid-template-columns: 34px 1fr 30px;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: var(--rw-meta-size);
   color: var(--rw-meta);
   font-weight: var(--rw-meta-weight, 500);
 }
+.oc-rw-line-stars {
+  color: var(--rw-star);
+  font-size: var(--rw-summary-star-size, 15px);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  min-width: 86px;
+}
+.oc-rw-line-count {
+  color: var(--rw-meta);
+  min-width: 34px;
+  text-align: right;
+}
 .oc-rw-bar { background: #f3f4f6; border-radius: 999px; height: 8px; overflow: hidden; }
-.oc-rw-bar-fill { background: var(--rw-star); height: 100%; }
+.oc-rw-bar-fill { background: #7a7a7a; height: 100%; }
 
 /* Masonry-like rhythm using CSS columns for looser Loox-style flow */
 .oc-rw-grid {

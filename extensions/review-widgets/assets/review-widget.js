@@ -161,9 +161,9 @@
         const c = Number(dist[s] ?? dist[String(s)] ?? 0);
         const pct = total > 0 ? Math.round((c / total) * 100) : 0;
         return `<div class="oc-rw-line">
-          <div>${s}★</div>
+          <div class="oc-rw-line-stars" aria-label="${s} star reviews">${stars(s)}</div>
           <div class="oc-rw-bar"><div class="oc-rw-bar-fill" style="width:${pct}%"></div></div>
-          <div>${c}</div>
+          <div class="oc-rw-line-count">(${c})</div>
         </div>`;
       }).join('');
 
