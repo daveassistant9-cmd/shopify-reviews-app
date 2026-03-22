@@ -96,7 +96,7 @@ async function pollReady(shop, token, id, timeoutMs = 45000) {
 async function mirror(shopId, shop, token, sourceUrl) {
   const cached = await getCached(shopId, sourceUrl);
   if (cached?.status === 'ready' && cached?.shopify_url && cached?.shopify_file_id) {
-    return { fileId: cached.shopify_file_id, url: cached.shopify_url };
+    return { fileId: cached.shopify_file_id, url: cached.shopify_url, reused: true };
   }
 
   await upsertCache(shopId, sourceUrl, { status: 'pending' });
@@ -112,7 +112,7 @@ async function mirror(shopId, shop, token, sourceUrl) {
   if (!file?.id) throw new Error('NO_ID');
   const ready = file?.fileStatus === 'READY' && file?.image?.url ? { id: file.id, url: file.image.url } : await pollReady(shop, token, file.id);
   await upsertCache(shopId, sourceUrl, { status: 'ready', fileId: ready.id, url: ready.url });
-  return { fileId: ready.id, url: ready.url };
+  return { fileId: ready.id, url: ready.url, reused: false };
 }
 
 async function main() {
@@ -139,9 +139,12 @@ async function main() {
 
   let ok = 0;
   let fail = 0;
+  let reused = 0;
+  const processed = rows.length;
   for (const r of rows) {
     try {
       const mirrored = await mirror(shop, shop, session.accessToken, r.media_url);
+      if (mirrored.reused) reused += 1;
       await prisma.$executeRawUnsafe(
         `UPDATE review_media
          SET source_url = $2, media_url = $3, shopify_file_id = $4, mirror_status='ready', mirror_error=NULL, updated_at=now()
@@ -164,7 +167,7 @@ async function main() {
     }
   }
 
-  console.log(JSON.stringify({ shop, scanned: rows.length, mirrored: ok, failed: fail }, null, 2));
+  console.log(JSON.stringify({ shop, processed, mirrored: ok, failed: fail, reused_from_cache: reused, skipped: 0 }, null, 2));
 }
 
 main().finally(async () => {
