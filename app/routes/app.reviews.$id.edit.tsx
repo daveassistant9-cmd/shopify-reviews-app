@@ -24,6 +24,17 @@ const parseMediaUrlsField = (raw: string) => {
   return out;
 };
 
+const filesToDataUrls = async (formData: FormData, field: string) => {
+  const files = formData.getAll(field).filter((v): v is File => typeof File !== "undefined" && v instanceof File && v.size > 0);
+  const out: string[] = [];
+  for (const f of files) {
+    const buf = Buffer.from(await f.arrayBuffer());
+    const mime = f.type || "image/jpeg";
+    out.push(`data:${mime};base64,${buf.toString("base64")}`);
+  }
+  return out;
+};
+
 function validate(input: { reviewer_name: string; body: string; rating: number }) {
   const errors: string[] = [];
   if (!input.reviewer_name.trim()) errors.push("reviewer_name is required");
@@ -53,6 +64,9 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const rating = Number(formData.get("rating"));
 
+  const mediaFromText = parseMediaUrlsField(String(formData.get("media_urls") || ""));
+  const mediaFromFiles = await filesToDataUrls(formData, "media_files");
+
   const payload = {
     product_gid: String(formData.get("product_gid") || ""),
     reviewer_name: String(formData.get("reviewer_name") || ""),
@@ -62,7 +76,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     submitted_at: formData.get("submitted_at") ? new Date(String(formData.get("submitted_at"))) : null,
     product_handle_snapshot: String(formData.get("product_handle_snapshot") || "") || null,
     product_title_snapshot: String(formData.get("product_title_snapshot") || "") || null,
-    media_urls: parseMediaUrlsField(String(formData.get("media_urls") || "")),
+    media_urls: [...mediaFromText, ...mediaFromFiles],
     status: String(formData.get("status") || "draft") as any,
   };
 
@@ -160,7 +174,7 @@ export default function EditReviewRouteModal() {
                 <InlineStack gap="200" wrap>
                   <input value={newUrl} onChange={(e) => setNewUrl(e.currentTarget.value)} placeholder="https://image-url" style={{ minWidth: 280, padding: 8 }} />
                   <button type="button" onClick={addUrl} style={{ border: '1px solid #d1d5db', background: '#fff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>Add URL</button>
-                  <input type="file" accept="image/*" multiple onChange={(e) => onFiles(e.currentTarget.files)} />
+                  <input type="file" name="media_files" accept="image/*" multiple onChange={(e) => onFiles(e.currentTarget.files)} />
                 </InlineStack>
               </BlockStack>
             </Card>

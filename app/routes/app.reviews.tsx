@@ -47,6 +47,17 @@ const parseMediaUrlsField = (raw: string) => {
   return out;
 };
 
+const filesToDataUrls = async (formData: FormData, field: string) => {
+  const files = formData.getAll(field).filter((v): v is File => typeof File !== "undefined" && v instanceof File && v.size > 0);
+  const out: string[] = [];
+  for (const f of files) {
+    const buf = Buffer.from(await f.arrayBuffer());
+    const mime = f.type || "image/jpeg";
+    out.push(`data:${mime};base64,${buf.toString("base64")}`);
+  }
+  return out;
+};
+
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
@@ -144,6 +155,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "create") {
     const rating = Number(formData.get("rating"));
+    const mediaFromText = parseMediaUrlsField(String(formData.get("media_urls") || ""));
+    const mediaFromFiles = await filesToDataUrls(formData, "media_files");
     const input = {
       shopId: session.shop,
       product_gid: String(formData.get("product_gid") || ""),
@@ -153,7 +166,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       rating,
       title: (formData.get("title") as string) || null,
       body: String(formData.get("body") || ""),
-      media_urls: parseMediaUrlsField(String(formData.get("media_urls") || "")),
+      media_urls: [...mediaFromText, ...mediaFromFiles],
       submitted_at: formData.get("submitted_at")
         ? new Date(String(formData.get("submitted_at")))
         : null,
@@ -576,6 +589,7 @@ export default function ReviewsPage() {
               <label><Text as="span" variant="bodyMd">Rating (1-5)</Text><input name="rating" type="number" min={1} max={5} defaultValue={5} required style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
               <label><Text as="span" variant="bodyMd">Title</Text><input name="title" style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
               <label><Text as="span" variant="bodyMd">Body</Text><textarea name="body" rows={4} required style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
+              <label><Text as="span" variant="bodyMd">Upload images</Text><input type="file" name="media_files" accept="image/*" multiple style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
               <InlineStack align="end"><Button submit variant="primary">Create review now</Button></InlineStack>
             </BlockStack>
           </Form>
@@ -616,7 +630,7 @@ export default function ReviewsPage() {
                   <InlineStack gap="200" wrap>
                     <input value={createUrl} onChange={(e) => setCreateUrl(e.currentTarget.value)} placeholder="https://image-url" style={{ minWidth: 260, padding: 8 }} />
                     <button type="button" onClick={addCreateUrl} style={{ border: '1px solid #d1d5db', background: '#fff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>Add URL</button>
-                    <input type="file" accept="image/*" multiple onChange={(e) => onCreateFiles(e.currentTarget.files)} />
+                    <input type="file" name="media_files" accept="image/*" multiple onChange={(e) => onCreateFiles(e.currentTarget.files)} />
                   </InlineStack>
                 </BlockStack>
               </Card>
