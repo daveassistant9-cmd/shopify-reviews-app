@@ -1,35 +1,34 @@
 client_id = "29a6dd901ebe81445244a6459106355c"
 name = "aethra-reviews"
 handle = "aethra-reviews"
-application_url = "https://REPLACE_WITH_PROD_DOMAIN"
+application_url = "https://shopify-reviews-app-3zlq.onrender.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = false
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-04"
 
   [[webhooks.subscriptions]]
   topics = ["app/uninstalled"]
-  uri = "https://REPLACE_WITH_PROD_DOMAIN/webhooks/app/uninstalled"
+  uri = "https://shopify-reviews-app-3zlq.onrender.com/webhooks/app/uninstalled"
 
   [[webhooks.subscriptions]]
   topics = ["app/scopes_update"]
-  uri = "https://REPLACE_WITH_PROD_DOMAIN/webhooks/app/scopes_update"
+  uri = "https://shopify-reviews-app-3zlq.onrender.com/webhooks/app/scopes_update"
 
 [access_scopes]
-scopes = "read_products"
+scopes = "read_products,read_files,write_files"
 
 [auth]
 redirect_urls = [
-  "https://REPLACE_WITH_PROD_DOMAIN/auth/callback",
-  "https://REPLACE_WITH_PROD_DOMAIN/auth/shopify/callback",
-  "https://REPLACE_WITH_PROD_DOMAIN/api/auth/callback"
+  "https://shopify-reviews-app-3zlq.onrender.com/auth/callback",
+  "https://shopify-reviews-app-3zlq.onrender.com/auth/shopify/callback",
+  "https://shopify-reviews-app-3zlq.onrender.com/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://REPLACE_WITH_PROD_DOMAIN/proxy/widget-data"
+url = "https://shopify-reviews-app-3zlq.onrender.com/proxy/widget-data"
 subpath = "aethra-reviews"
 prefix = "apps"

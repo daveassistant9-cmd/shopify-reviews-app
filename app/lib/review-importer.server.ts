@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import prisma from "../db.server";
 import { ReviewStatus } from "@prisma/client";
 import { recomputeProductAggregate } from "./reviews.server";
+import { insertMirroredMediaRows, mirrorExternalMediaToShopify } from "./review-media-mirror.server";
 
 type ImportMapping = {
   product_gid: string;
@@ -489,7 +490,7 @@ export async function runImportDryRun(jobId: string, shopId: string) {
   return { stats, errorSummary };
 }
 
-export async function commitImportJob(jobId: string, shopId: string) {
+export async function commitImportJob(jobId: string, shopId: string, admin?: { graphql: (query: string, init?: any) => Promise<Response> }) {
   const job = await findImportJob(jobId, shopId);
   if (!job) throw new Error("Import job not found");
 
@@ -528,7 +529,7 @@ export async function commitImportJob(jobId: string, shopId: string) {
       continue;
     }
 
-    await prisma.reviews.create({
+    const created = await prisma.reviews.create({
       data: {
         shop_id: shopId,
         product_gid: normalized.product_gid,
@@ -538,22 +539,50 @@ export async function commitImportJob(jobId: string, shopId: string) {
         rating: normalized.rating,
         title: normalized.title,
         body: normalized.body,
-        image_url: normalized.media_urls[0] ?? null,
+        image_url: null,
         status: normalized.import_status,
         submitted_at: normalized.submitted_at ? new Date(normalized.submitted_at) : null,
         published_at: normalized.import_status === ReviewStatus.published ? new Date() : null,
-        media: normalized.media_urls.length
-          ? {
-              create: normalized.media_urls.map((url, idx) => ({
-                shop_id: shopId,
-                media_url: url,
-                media_type: "image",
-                sort_order: idx,
-              })),
-            }
-          : undefined,
       },
+      select: { id: true },
     });
+
+    if (normalized.media_urls.length) {
+      if (!admin) {
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS review_media_mirror_failures (
+            id uuid primary key default gen_random_uuid(),
+            shop_id text not null,
+            review_id uuid,
+            source_url text not null,
+            error text,
+            created_at timestamptz not null default now()
+          )
+        `).catch(() => {});
+        for (const sourceUrl of normalized.media_urls) {
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO review_media_mirror_failures (id, shop_id, review_id, source_url, error, created_at)
+             VALUES (gen_random_uuid(), $1, $2::uuid, $3, $4, now())`,
+            shopId,
+            created.id,
+            sourceUrl,
+            "admin client missing for mirror",
+          ).catch(() => {});
+        }
+      } else {
+        const mirrored = await mirrorExternalMediaToShopify({
+          admin,
+          shopId,
+          sourceUrls: normalized.media_urls,
+          reviewId: created.id,
+        });
+
+        if (mirrored.succeeded.length) {
+          await insertMirroredMediaRows({ shopId, reviewId: created.id, items: mirrored.succeeded });
+          await prisma.reviews.update({ where: { id: created.id }, data: { image_url: mirrored.succeeded[0].shopifyUrl } });
+        }
+      }
+    }
 
     touchedProducts.add(normalized.product_gid);
     committed += 1;

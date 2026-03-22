@@ -179,7 +179,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const jobId = String(formData.get("job_id") || "");
     if (!jobId) return json({ ok: false, error: "job_id is required" }, { status: 400 });
 
-    const result = await commitImportJob(jobId, session.shop);
+    const result = await commitImportJob(jobId, session.shop, admin);
     return json({ ok: true, ...result });
   }
 
