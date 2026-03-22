@@ -111,12 +111,6 @@ async function ensureWidgetSettingsColumns() {
 }
 
 export async function getWidgetSettings(shopId: string) {
-  const delegate = getSettingsDelegate();
-  if (delegate?.findUnique) {
-    const row = await delegate.findUnique({ where: { shop_id: shopId } });
-    return row ? { ...DEFAULT_WIDGET_SETTINGS, ...row } : DEFAULT_WIDGET_SETTINGS;
-  }
-
   const rows = await prisma.$queryRawUnsafe<any[]>(
     `SELECT * FROM "review_widget_settings" WHERE shop_id = $1 LIMIT 1`,
     shopId,

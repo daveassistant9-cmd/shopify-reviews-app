@@ -23,11 +23,16 @@
 .oc-rw-caret-btn {
   border: 0;
   background: transparent;
-  padding: 0 2px;
+  padding: 0;
   cursor: pointer;
   color: var(--rw-meta);
   font-size: var(--rw-breakdown-caret-size, 14px);
   line-height: 1;
+  width: calc(var(--rw-breakdown-caret-size, 14px) * 1.4);
+  height: calc(var(--rw-breakdown-caret-size, 14px) * 1.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transform: translateY(-1px);
 }
 .oc-rw-summary-bottom { margin-top: 8px; }
