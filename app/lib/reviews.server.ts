@@ -36,6 +36,14 @@ export type CreateReviewInput = {
   submitted_at?: Date | null;
 };
 
+function normalizeProductGid(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("gid://shopify/Product/")) return raw;
+  const m = raw.match(/(\d+)/);
+  return m ? `gid://shopify/Product/${m[1]}` : raw;
+}
+
 export function validateCreateReviewInput(input: CreateReviewInput) {
   const errors: string[] = [];
 
@@ -56,7 +64,7 @@ export async function createReview(input: CreateReviewInput) {
   const review = await prisma.reviews.create({
     data: {
       shop_id: input.shopId,
-      product_gid: input.product_gid,
+      product_gid: normalizeProductGid(input.product_gid),
       product_handle_snapshot: input.product_handle_snapshot ?? null,
       product_title_snapshot: input.product_title_snapshot ?? null,
       reviewer_name: input.reviewer_name,
@@ -205,7 +213,12 @@ export async function listReviewsByShop(
   const where: any = { shop_id: shopId };
 
   if (filters?.productGid?.trim()) {
-    where.product_gid = { contains: filters.productGid.trim(), mode: "insensitive" };
+    const normalized = normalizeProductGid(filters.productGid.trim());
+    const numeric = normalized.match(/\/Product\/(\d+)$/)?.[1] || filters.productGid.trim();
+    where.OR = [
+      { product_gid: { contains: normalized, mode: "insensitive" } },
+      { product_gid: { contains: numeric, mode: "insensitive" } },
+    ];
   }
 
   if (filters?.productText?.trim()) {
@@ -279,7 +292,7 @@ export async function updateReviewById({
   const updated = await prisma.reviews.update({
     where: { id: reviewId },
     data: {
-      product_gid: input.product_gid,
+      product_gid: normalizeProductGid(input.product_gid),
       reviewer_name: input.reviewer_name,
       rating: input.rating,
       title: input.title ?? null,
@@ -329,7 +342,7 @@ export async function updateReviewById({
 
   if (wasPublished || isPublished) {
     productsToRecompute.add(existing.product_gid);
-    productsToRecompute.add(input.product_gid);
+    productsToRecompute.add(normalizeProductGid(input.product_gid));
   }
 
   for (const productGid of productsToRecompute) {

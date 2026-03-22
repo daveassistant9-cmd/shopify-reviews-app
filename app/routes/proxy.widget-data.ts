@@ -66,8 +66,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = url.searchParams.get("shop") || "";
   const productId = url.searchParams.get("product_id") || "";
   const productGid = productId ? `gid://shopify/Product/${productId}` : "";
+  const productCandidates = Array.from(new Set([productGid, productId].filter(Boolean)));
 
-  if (!shop || !productGid) {
+  if (!shop || !productCandidates.length) {
     return json({ ok: false, error: "shop and product_id required" }, { status: 400, headers: corsHeaders(origin) });
   }
 
@@ -93,13 +94,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       r.published_at
      FROM reviews r
      WHERE r.shop_id = $1
-       AND r.product_gid = $2
+       AND r.product_gid = ANY($2::text[])
        AND r.status = 'published'::"ReviewStatus"
      ORDER BY ${orderBySql}
      OFFSET $3
      LIMIT $4`,
     shop,
-    productGid,
+    productCandidates,
     offset,
     requestedLimit,
   );
@@ -120,11 +121,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
   const reviews = reviewsBase.map((r) => ({ ...r, media: mediaByReview.get(r.id) || [] }));
 
-  const aggregate = await prisma.product_aggregates.findUnique({
-    where: { shop_id_product_gid: { shop_id: shop, product_gid: productGid } },
+  const aggregateRows = await prisma.product_aggregates.findMany({
+    where: { shop_id: shop, product_gid: { in: productCandidates } },
   });
+  const aggregate = aggregateRows[0] || null;
 
-  const totalCount = aggregate?.review_count_published ?? 0;
+  const totalCount = aggregate?.review_count_published ?? reviewsBase.length;
 
   return json(
     {
