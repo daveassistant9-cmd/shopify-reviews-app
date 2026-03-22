@@ -559,15 +559,10 @@
           const target = ev.target instanceof Element ? ev.target : null;
           if (!target) return;
           const open = target.closest('[data-open-review-modal]');
-          const closeBtn = target.closest('button[data-close-review-modal]');
           const lightboxOpen = target.closest('[data-rw-open-lightbox]');
           if (open && modalEl) {
             ev.preventDefault();
             openOverlay(modalEl, 'button[data-close-review-modal]');
-          }
-          if (closeBtn && modalEl) {
-            ev.preventDefault();
-            closeOverlay(modalEl);
           }
           if (lightboxOpen) {
             ev.preventDefault();
@@ -576,6 +571,19 @@
           }
         });
         mount.__rwDelegatedClicksBound = true;
+      }
+
+      if (modalEl && !modalEl.__rwCloseDelegatedBound) {
+        modalEl.addEventListener('click', (ev) => {
+          const target = ev.target instanceof Element ? ev.target : null;
+          if (!target) return;
+          const closeBtn = target.closest('button[data-close-review-modal]');
+          if (closeBtn) {
+            ev.preventDefault();
+            closeOverlay(modalEl);
+          }
+        });
+        modalEl.__rwCloseDelegatedBound = true;
       }
 
       if (lightbox && !lightbox.__rwThumbDelegatedBound) {
