@@ -142,7 +142,7 @@ export default function EditReviewRouteModal() {
           <Text as="h2" variant="headingMd">Edit review</Text>
           <a href={backToReviews} style={{ textDecoration: 'none' }}>Back to reviews</a>
         </InlineStack>
-        <Form method="post">
+        <Form method="post" encType="multipart/form-data">
           <BlockStack gap="300">
             <input type="hidden" name="status" value={review.status} />
             <input type="hidden" name="media_urls" value={mediaUrls.join("\n")} />

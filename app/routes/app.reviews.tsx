@@ -581,7 +581,7 @@ export default function ReviewsPage() {
       <Card>
         <BlockStack gap="200" id="quick-create-review">
           <Text as="h3" variant="headingSm">Quick create review (reliable mode)</Text>
-          <Form method="post" action={postActionUrl}>
+          <Form method="post" action={postActionUrl} encType="multipart/form-data">
             <input type="hidden" name="intent" value="create" />
             <BlockStack gap="200">
               <label><Text as="span" variant="bodyMd">Product GID</Text><input name="product_gid" required placeholder="gid://shopify/Product/..." style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
@@ -598,7 +598,7 @@ export default function ReviewsPage() {
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create review" primaryAction={undefined}>
         <Modal.Section>
-          <Form method="post" action={postActionUrl}>
+          <Form method="post" action={postActionUrl} encType="multipart/form-data">
             <input type="hidden" name="intent" value="create" />
             <input type="hidden" name="media_urls" value={createMedia.join("\n")} />
             <BlockStack gap="300">
