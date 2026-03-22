@@ -229,6 +229,12 @@ export default function ReviewsPage() {
   const { reviews, aggregateByProduct, filters, adminProductBase } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const embeddedKeys = ["shop", "host", "embedded", "hmac", "timestamp", "id_token", "locale", "session"];
+  const embeddedParams = Object.fromEntries(
+    embeddedKeys
+      .map((k) => [k, searchParams.get(k) || ""])
+      .filter(([, v]) => !!v),
+  );
   const navigation = useNavigation();
   const busy = navigation.state !== "idle";
 
@@ -285,6 +291,9 @@ export default function ReviewsPage() {
             </InlineStack>
             <Form method="get">
               <BlockStack gap="300">
+                {Object.entries(embeddedParams).map(([k, v]) => (
+                  <input key={k} type="hidden" name={k} value={v} />
+                ))}
                 <InlineStack gap="300" wrap>
                   <input type="hidden" name="product_gid" value={filterProduct?.gid || ""} />
                   <input type="hidden" name="product_text" value="" />

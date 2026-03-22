@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useLoaderData, useNavigate, useNavigation } from "@remix-run/react";
+import { Form, useLoaderData, useLocation, useNavigate, useNavigation } from "@remix-run/react";
 import { useMemo, useState } from "react";
 import { BlockStack, Button, Card, InlineStack, Modal, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
@@ -70,14 +70,18 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   if (errors.length) return json({ ok: false, errors }, { status: 400 });
 
   await updateReviewById({ shopId: session.shop, reviewId: id, input: payload });
-  return redirect("/app/reviews");
+  const current = new URL(request.url);
+  const q = current.search || "";
+  return redirect(`/app/reviews${q}`);
 };
 
 export default function EditReviewRouteModal() {
   const { review } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const navigate = useNavigate();
+  const location = useLocation();
   const busy = navigation.state !== "idle";
+  const backToReviews = `/app/reviews${location.search || ""}`;
 
   const initialMedia = useMemo(() => (review.media?.map((m: any) => m.media_url) || []), [review.media]);
   const [mediaUrls, setMediaUrls] = useState<string[]>(initialMedia);
@@ -118,7 +122,7 @@ export default function EditReviewRouteModal() {
   };
 
   return (
-    <Modal open onClose={() => navigate('/app/reviews')} title="Edit review" large>
+    <Modal open onClose={() => navigate(backToReviews)} title="Edit review" large>
       <Modal.Section>
         <Form method="post">
           <BlockStack gap="300">
@@ -168,7 +172,7 @@ export default function EditReviewRouteModal() {
             <label><Text as="span" variant="bodyMd">Submitted at</Text><input name="submitted_at" defaultValue={review.submitted_at ? new Date(review.submitted_at).toISOString() : ""} style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
 
             <InlineStack align="end" gap="200">
-              <Button onClick={() => navigate('/app/reviews')}>Cancel</Button>
+              <Button onClick={() => navigate(backToReviews)}>Cancel</Button>
               <Button submit variant="primary" loading={busy}>Save</Button>
             </InlineStack>
           </BlockStack>
