@@ -1,23 +1,44 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReviewStatus {
+  draft
+  published
+  unpublished
+}
+
+enum ReviewImportJobStatus {
+  uploaded
+  validated
+  committed
+  failed
+}
+
+enum ReviewImportDedupeDecision {
+  unique
+  duplicate_in_file
+  duplicate_existing
+}
+
+enum ReviewImportCommitDecision {
+  pending
+  committed
+  skipped_invalid
+  skipped_duplicate_in_file
+  skipped_duplicate_existing
 }
 
 model Session {
-  id                  String    @id
+  id                  String   @id
   shop                String
   state               String
-  isOnline            Boolean   @default(false)
+  isOnline            Boolean  @default(false)
   scope               String?
   expires             DateTime?
   accessToken         String
@@ -25,10 +46,145 @@ model Session {
   firstName           String?
   lastName            String?
   email               String?
-  accountOwner        Boolean   @default(false)
+  accountOwner        Boolean  @default(false)
   locale              String?
-  collaborator        Boolean?  @default(false)
-  emailVerified       Boolean?  @default(false)
+  collaborator        Boolean? @default(false)
+  emailVerified       Boolean? @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+}
+
+model reviews {
+  id                      String       @id @default(uuid()) @db.Uuid
+  shop_id                 String
+  product_gid             String
+  product_handle_snapshot String?
+  product_title_snapshot  String?
+  reviewer_name           String
+  rating                  Int
+  title                   String?
+  body                    String
+  image_url               String?
+  status                  ReviewStatus @default(draft)
+  submitted_at            DateTime?
+  published_at            DateTime?
+  created_at              DateTime     @default(now())
+  updated_at              DateTime     @updatedAt
+  media                   ReviewMedia[]
+
+  @@index([shop_id, product_gid, status])
+  @@index([status, created_at])
+}
+
+model ReviewMedia {
+  id         String   @id @default(uuid()) @db.Uuid
+  review_id  String   @db.Uuid
+  shop_id    String
+  media_url  String
+  media_type String   @default("image")
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  review reviews @relation(fields: [review_id], references: [id], onDelete: Cascade)
+
+  @@index([review_id, sort_order])
+  @@index([shop_id])
+  @@map("review_media")
+}
+
+model product_aggregates {
+  id                     String   @id @default(uuid()) @db.Uuid
+  shop_id                String
+  product_gid            String
+  review_count_published Int      @default(0)
+  rating_avg_published   Decimal  @default(0) @db.Decimal(4, 2)
+  rating_distribution    Json
+  updated_at             DateTime @updatedAt
+
+  @@unique([shop_id, product_gid])
+  @@index([shop_id, product_gid])
+}
+
+model ReviewImportJob {
+  id                    String                @id @default(uuid()) @db.Uuid
+  shop_id               String
+  status                ReviewImportJobStatus @default(uploaded)
+  file_name             String
+  is_dry_run            Boolean               @default(true)
+  default_import_status ReviewStatus          @default(draft)
+  column_mapping        Json
+  stats                 Json
+  error_summary         Json
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+
+  rows ReviewImportJobRow[]
+
+  @@index([shop_id, created_at])
+  @@map("review_import_jobs")
+}
+
+model ReviewImportJobRow {
+  id                 String                     @id @default(uuid()) @db.Uuid
+  import_job_id      String                     @db.Uuid
+  row_number         Int
+  raw_payload        Json
+  normalized_payload Json?
+  validation_errors  Json
+  dedupe_decision    ReviewImportDedupeDecision @default(unique)
+  commit_decision    ReviewImportCommitDecision @default(pending)
+  created_at         DateTime                   @default(now())
+
+  job ReviewImportJob @relation(fields: [import_job_id], references: [id], onDelete: Cascade)
+
+  @@index([import_job_id, row_number])
+  @@map("review_import_job_rows")
+}
+
+model WidgetSettings {
+  id                    String   @id @default(uuid()) @db.Uuid
+  shop_id               String   @unique
+  star_color            String   @default("#f59e0b")
+  text_color            String   @default("#111827")
+  meta_text_color       String   @default("#6b7280")
+  card_bg_color         String   @default("#ffffff")
+  card_border_color     String   @default("#e5e7eb")
+  border_radius_px      Int      @default(12)
+  font_family           String   @default("Inter, system-ui, sans-serif")
+  heading_size_px       Int      @default(20)
+  body_size_px          Int      @default(14)
+  meta_size_px          Int      @default(12)
+  card_spacing_px       Int      @default(12)
+  desktop_columns       Int      @default(3)
+  mobile_columns        Int      @default(2)
+  show_verified_badge   Boolean  @default(true)
+  show_review_date      Boolean  @default(true)
+  show_rating_breakdown Boolean  @default(true)
+  show_write_review_btn Boolean  @default(true)
+  write_review_label    String   @default("Write a review")
+  section_heading       String   @default("Customer reviews")
+  empty_state_text      String   @default("No reviews yet")
+  verified_badge_label  String   @default("Verified")
+  verified_badge_color  String   @default("#eef2ff")
+  verified_badge_text_color String @default("#4f46e5")
+  summary_star_size_px  Int      @default(15)
+  summary_text_size_px  Int      @default(14)
+  show_review_count     Boolean  @default(true)
+  modal_title           String   @default("Write a review")
+  modal_subtitle        String   @default("Share your experience with this product")
+  modal_name_label      String   @default("Your name")
+  modal_rating_label    String   @default("Rating")
+  modal_review_title_label String @default("Review title")
+  modal_review_body_label  String @default("Review")
+  modal_image_label     String   @default("Images (optional)")
+  modal_submit_label    String   @default("Submit review")
+  modal_success_message String   @default("Thanks! Your review was submitted for moderation.")
+  modal_error_message   String   @default("Failed to submit review")
+  modal_close_label     String   @default("Close")
+  modal_image_helper_text String @default("You can upload up to 5 images")
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  @@map("review_widget_settings")
 }

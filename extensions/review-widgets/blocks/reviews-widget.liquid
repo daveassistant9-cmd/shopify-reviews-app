@@ -1,0 +1,44 @@
+{{ 'review-widget.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'review-widget.js' | asset_url }}" defer></script>
+
+<div
+  id="reviews-widget-{{ block.id }}"
+  class="oc-reviews-widget"
+  data-shop-domain="{{ shop.permanent_domain }}"
+  data-product-id="{{ product.id }}"
+  data-show-breakdown="{{ block.settings.show_breakdown }}"
+  data-design-mode="{{ request.design_mode }}"
+>
+  <div class="oc-rw-empty" data-rw-fallback="loading">Loading reviews…</div>
+</div>
+<script>
+  (function(){
+    var mountId = 'reviews-widget-{{ block.id }}';
+    setTimeout(function(){
+      var mount = document.getElementById(mountId);
+      if (!mount) return;
+      var loading = mount.querySelector('[data-rw-fallback="loading"]');
+      if (loading) {
+        mount.innerHTML = '<div class="oc-rw-empty">Unable to load reviews widget.</div>';
+      }
+    }, 12000);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Reviews widget",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breakdown",
+      "label": "Show rating breakdown panel by default",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

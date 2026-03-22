@@ -1,0 +1,16 @@
+{%- comment -%}
+  Intentionally disabled.
+  We keep this file for backward compatibility with existing extension versions,
+  but render nothing to avoid duplicate widget mounts (section + body).
+{%- endcomment -%}
+
+{% schema %}
+{
+  "name": "Reviews embed off",
+  "target": "body",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": []
+}
+{% endschema %}
