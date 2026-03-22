@@ -11,6 +11,21 @@
 
   const byId = (id) => document.getElementById(id);
 
+  const lockScroll = () => {
+    const b = document.body;
+    if (!b) return;
+    const n = Number(b.dataset.ocRwLocks || '0') + 1;
+    b.dataset.ocRwLocks = String(n);
+    b.classList.add('oc-rw-scroll-lock');
+  };
+  const unlockScroll = () => {
+    const b = document.body;
+    if (!b) return;
+    const n = Math.max(0, Number(b.dataset.ocRwLocks || '0') - 1);
+    b.dataset.ocRwLocks = String(n);
+    if (n === 0) b.classList.remove('oc-rw-scroll-lock');
+  };
+
   const previewReviews = [
     {
       id: 'preview-1', reviewer_name: 'Emma', rating: 5, title: 'Amazing quality', body: 'Looks premium and feels durable. Shipping was quick too.', image_url: 'https://picsum.photos/seed/review1/600/600', submitted_at: new Date().toISOString()
@@ -483,6 +498,7 @@
         lbMediaIndex = Number(mediaIndex || 0);
         renderLightbox();
         lightbox.hidden = false;
+        lockScroll();
       };
 
       mount.querySelectorAll('[data-rw-close-lightbox]').forEach((btn) => {
@@ -490,6 +506,7 @@
         btn.addEventListener('click', (ev) => {
           ev.preventDefault();
           if (lightbox) lightbox.hidden = true;
+          unlockScroll();
         });
         btn.__rwCloseBound = true;
       });
@@ -524,10 +541,12 @@
           if (open && modalEl) {
             ev.preventDefault();
             modalEl.hidden = false;
+            lockScroll();
           }
           if (close && modalEl) {
             ev.preventDefault();
             modalEl.hidden = true;
+            unlockScroll();
           }
           if (lightboxOpen) {
             ev.preventDefault();

@@ -216,6 +216,7 @@
 
 .oc-rw-lightbox[hidden] { display: none; }
 .oc-rw-lightbox { position: fixed; inset: 0; z-index: 10000; }
+body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
 .oc-rw-lightbox-backdrop {
   position: absolute;
   inset: 0;
