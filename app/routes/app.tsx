@@ -11,14 +11,20 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
+  const url = new URL(request.url);
+  const p = new URLSearchParams();
+  ["shop", "host", "embedded", "hmac", "timestamp", "id_token", "session", "locale"].forEach((k) => {
+    const v = url.searchParams.get(k);
+    if (v) p.set(k, v);
+  });
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", embeddedQuery: p.toString() };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, embeddedQuery } = useLoaderData<typeof loader>();
   const location = useLocation();
-  const qs = location.search || "";
+  const qs = location.search || (embeddedQuery ? `?${embeddedQuery}` : "");
   const withEmbeddedParams = (path: string) => `${path}${qs}`;
 
   return (

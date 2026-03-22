@@ -101,7 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch {}
 
   const dbg = {
-    enabled: url.searchParams.get("debug") === "1",
+    enabled: true,
     status: url.searchParams.get("ocdbg_status") || "",
     message: url.searchParams.get("ocdbg_msg") || "",
     intent: url.searchParams.get("ocdbg_intent") || "",
