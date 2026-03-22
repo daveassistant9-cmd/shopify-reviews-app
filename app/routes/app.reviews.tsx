@@ -287,7 +287,21 @@ export default function ReviewsPage() {
           <BlockStack gap="300">
             <InlineStack align="space-between" blockAlign="center">
               <Text as="h2" variant="headingMd">Manage reviews</Text>
-              <Button variant="primary" onClick={() => setCreateOpen(true)}>Create review</Button>
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                style={{
+                  background: "#111827",
+                  color: "#fff",
+                  border: 0,
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Create review
+              </button>
             </InlineStack>
             <Form method="get">
               <BlockStack gap="300">
@@ -371,6 +385,19 @@ export default function ReviewsPage() {
                           else setSelectedIds(selectedIds.filter((id) => id !== review.id));
                         }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedIds((prev) =>
+                            prev.includes(review.id)
+                              ? prev.filter((id) => id !== review.id)
+                              : Array.from(new Set([...prev, review.id])),
+                          );
+                        }}
+                        style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}
+                      >
+                        {selectedIds.includes(review.id) ? "Unselect" : "Select"}
+                      </button>
                       <Text as="p" variant="headingSm">{review.reviewer_name}</Text>
                       <Badge tone={badgeTone(review.status)}>{review.status}</Badge>
                       <Text as="span" variant="bodySm" tone="subdued">{new Date(review.created_at).toLocaleDateString()}</Text>
