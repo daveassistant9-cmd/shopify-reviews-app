@@ -507,6 +507,7 @@ export default function ReviewsPage() {
                       </button>
                       <Text as="p" variant="headingSm">{review.reviewer_name}</Text>
                       <Badge tone={badgeTone(review.status)}>{review.status}</Badge>
+                      <code style={{ fontSize: 11, background: '#f3f4f6', padding: '2px 6px', borderRadius: 6 }}>ID: {review.id}</code>
                       <Text as="span" variant="bodySm" tone="subdued">{new Date(review.created_at).toLocaleDateString()}</Text>
                     </InlineStack>
                     <InlineStack gap="150" wrap>
