@@ -234,9 +234,9 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
   padding: 14px;
 }
 .oc-rw-lightbox-close {
-  position: absolute;
+  position: fixed;
   right: 12px;
-  top: 12px;
+  top: max(12px, env(safe-area-inset-top));
   border: 0;
   background: rgba(15,23,42,.92);
   color: #fff;
@@ -244,7 +244,12 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
   width: 36px;
   height: 36px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10002;
+}
+.oc-rw-modal [data-close-review-modal].oc-rw-icon-btn {
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 .oc-rw-lightbox-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
 .oc-rw-lightbox-main-wrap { position: relative; background: #f8fafc; border-radius: 12px; overflow: hidden; }
@@ -279,7 +284,7 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; }
   border-radius: 14px;
   padding: 14px;
 }
-.oc-rw-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-weight: var(--rw-modal-title-weight, 700); }
+.oc-rw-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-weight: var(--rw-modal-title-weight, 700); position: sticky; top: 0; background: #fff; padding-top: 2px; z-index: 2; }
 .oc-rw-modal-subtitle { color: var(--rw-meta); font-size: var(--rw-meta-size); margin-bottom: 8px; font-weight: var(--rw-meta-weight, 500); }
 .oc-rw-form { display: grid; gap: 12px; }
 .oc-rw-form-block { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: var(--rw-modal-label-weight, 600); }

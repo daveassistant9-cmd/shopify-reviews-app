@@ -498,6 +498,10 @@
         lbMediaIndex = Number(mediaIndex || 0);
         renderLightbox();
         lightbox.hidden = false;
+        const panel = lightbox.querySelector('.oc-rw-lightbox-panel');
+        if (panel) panel.scrollTop = 0;
+        const closeBtn = lightbox.querySelector('[data-rw-close-lightbox]');
+        if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
         lockScroll();
       };
 
@@ -541,6 +545,10 @@
           if (open && modalEl) {
             ev.preventDefault();
             modalEl.hidden = false;
+            const panel = modalEl.querySelector('.oc-rw-modal-panel');
+            if (panel) panel.scrollTop = 0;
+            const closeBtn = modalEl.querySelector('[data-close-review-modal]');
+            if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
             lockScroll();
           }
           if (close && modalEl) {
