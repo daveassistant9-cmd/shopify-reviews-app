@@ -242,6 +242,7 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; oversc
   opacity: 0;
   transform: translateY(8px) scale(.995);
   transition: opacity .16s ease, transform .16s ease;
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.28);
 }
 .oc-rw-lightbox.is-open .oc-rw-lightbox-panel,
 .oc-rw-modal.is-open .oc-rw-modal-panel {
@@ -315,7 +316,9 @@ body.oc-rw-scroll-lock { overflow: hidden !important; touch-action: none; oversc
 .oc-rw-form [data-submit-btn] {
   position: sticky;
   bottom: 0;
-  background: #fff;
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
   box-shadow: 0 -6px 12px rgba(15,23,42,0.06);
 }
 .oc-rw-form-block { display: grid; gap: 6px; color: var(--rw-text); font-size: var(--rw-meta-size); font-weight: var(--rw-modal-label-weight, 600); }
