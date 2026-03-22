@@ -111,11 +111,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     reviewsCount: reviews.length,
   };
 
+  const selectedRaw = url.searchParams.get("selected") || "";
+
   return json({
     reviews,
     aggregateByProduct,
     productOptions,
     dbg,
+    selectedRaw,
     filters: { productGid, productText, rating: ratingRaw, status: statusRaw },
     adminProductBase: `https://admin.shopify.com/store/${session.shop.replace(".myshopify.com", "")}/products/`,
   });
@@ -272,7 +275,7 @@ const badgeTone = (status: ReviewStatus): "success" | "attention" | "info" => {
 };
 
 export default function ReviewsPage() {
-  const { reviews, aggregateByProduct, productOptions, dbg, filters, adminProductBase } = useLoaderData<typeof loader>();
+  const { reviews, aggregateByProduct, productOptions, dbg, selectedRaw, filters, adminProductBase } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const embeddedKeys = ["shop", "host", "embedded", "hmac", "timestamp", "id_token", "locale", "session"];
@@ -296,12 +299,16 @@ export default function ReviewsPage() {
 
   const postActionUrl = keepEmbeddedParams("/app/reviews");
 
+  if (/\/app\/reviews\/[^/]+\/edit$/.test(location.pathname)) {
+    return <Outlet />;
+  }
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createMedia, setCreateMedia] = useState<string[]>([]);
   const [createUrl, setCreateUrl] = useState("");
   const [filterProduct, setFilterProduct] = useState<ProductOption | null>(null);
   const [createProduct, setCreateProduct] = useState<ProductOption | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selectedIds = selectedRaw.split(',').map((v) => v.trim()).filter(Boolean);
   const [bulkProduct, setBulkProduct] = useState<ProductOption | null>(null);
 
   const addCreateUrl = () => {
@@ -487,24 +494,19 @@ export default function ReviewsPage() {
                         name="review_ids"
                         value={review.id}
                         form="bulk-fallback-form"
-                        onChange={(e) => {
-                          if (e.currentTarget.checked) setSelectedIds(Array.from(new Set([...selectedIds, review.id])));
-                          else setSelectedIds(selectedIds.filter((id) => id !== review.id));
-                        }}
+                        checked={selectedIds.includes(review.id)}
+                        readOnly
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedIds((prev) =>
-                            prev.includes(review.id)
-                              ? prev.filter((id) => id !== review.id)
-                              : Array.from(new Set([...prev, review.id])),
-                          );
-                        }}
-                        style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}
+                      <a
+                        href={`${keepEmbeddedParams('/app/reviews')}${keepEmbeddedParams('/app/reviews').includes('?') ? '&' : '?'}selected=${encodeURIComponent(
+                          selectedIds.includes(review.id)
+                            ? selectedIds.filter((id) => id !== review.id).join(',')
+                            : Array.from(new Set([...selectedIds, review.id])).join(','),
+                        )}`}
+                        style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer", textDecoration: 'none', color: '#111827' }}
                       >
                         {selectedIds.includes(review.id) ? "Unselect" : "Select"}
-                      </button>
+                      </a>
                       <Text as="p" variant="headingSm">{review.reviewer_name}</Text>
                       <Badge tone={badgeTone(review.status)}>{review.status}</Badge>
                       <code style={{ fontSize: 11, background: '#f3f4f6', padding: '2px 6px', borderRadius: 6 }}>ID: {review.id}</code>
