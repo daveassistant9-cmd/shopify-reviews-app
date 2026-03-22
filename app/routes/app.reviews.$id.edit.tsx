@@ -151,7 +151,7 @@ export default function EditReviewRouteModal() {
                       <img src={url} alt="review media" style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 8, border: "1px solid #ddd" }} />
                       <InlineStack align="space-between" blockAlign="center">
                         <Text as="span" variant="bodySm" tone="subdued">#{idx + 1}</Text>
-                        <Button size="micro" tone="critical" onClick={() => remove(idx)}>Remove</Button>
+                        <button type="button" onClick={() => remove(idx)} style={{ border: '1px solid #ef4444', background: '#fff', color: '#ef4444', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}>Remove</button>
                       </InlineStack>
                     </div>
                   ))}
@@ -159,7 +159,7 @@ export default function EditReviewRouteModal() {
 
                 <InlineStack gap="200" wrap>
                   <input value={newUrl} onChange={(e) => setNewUrl(e.currentTarget.value)} placeholder="https://image-url" style={{ minWidth: 280, padding: 8 }} />
-                  <Button onClick={addUrl}>Add URL</Button>
+                  <button type="button" onClick={addUrl} style={{ border: '1px solid #d1d5db', background: '#fff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>Add URL</button>
                   <input type="file" accept="image/*" multiple onChange={(e) => onFiles(e.currentTarget.files)} />
                 </InlineStack>
               </BlockStack>

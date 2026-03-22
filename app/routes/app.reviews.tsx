@@ -298,6 +298,12 @@ export default function ReviewsPage() {
     !!(filters.productGid || filters.productText || filters.rating || filters.status || searchParams.toString());
 
   const postActionUrl = keepEmbeddedParams("/app/reviews");
+  const withSelected = (ids: string[]) => {
+    const u = new URL(postActionUrl, "https://dummy.local");
+    if (ids.length) u.searchParams.set("selected", ids.join(','));
+    else u.searchParams.delete("selected");
+    return `${u.pathname}${u.search}`;
+  };
 
   if (/\/app\/reviews\/[^/]+\/edit$/.test(location.pathname)) {
     return <Outlet />;
@@ -498,11 +504,11 @@ export default function ReviewsPage() {
                         readOnly
                       />
                       <a
-                        href={`${keepEmbeddedParams('/app/reviews')}${keepEmbeddedParams('/app/reviews').includes('?') ? '&' : '?'}selected=${encodeURIComponent(
+                        href={withSelected(
                           selectedIds.includes(review.id)
-                            ? selectedIds.filter((id) => id !== review.id).join(',')
-                            : Array.from(new Set([...selectedIds, review.id])).join(','),
-                        )}`}
+                            ? selectedIds.filter((id) => id !== review.id)
+                            : Array.from(new Set([...selectedIds, review.id])),
+                        )}
                         style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer", textDecoration: 'none', color: '#111827' }}
                       >
                         {selectedIds.includes(review.id) ? "Unselect" : "Select"}
@@ -605,19 +611,19 @@ export default function ReviewsPage() {
                     {createMedia.map((url, idx) => (
                       <div key={`${url}-${idx}`} style={{ position: "relative" }}>
                         <img src={url} alt="media" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, border: "1px solid #ddd" }} />
-                        <Button size="micro" tone="critical" onClick={() => setCreateMedia(createMedia.filter((_, i) => i !== idx))}>Remove</Button>
+                        <button type="button" onClick={() => setCreateMedia(createMedia.filter((_, i) => i !== idx))} style={{ border: '1px solid #ef4444', background: '#fff', color: '#ef4444', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}>Remove</button>
                       </div>
                     ))}
                   </InlineStack>
                   <InlineStack gap="200" wrap>
                     <input value={createUrl} onChange={(e) => setCreateUrl(e.currentTarget.value)} placeholder="https://image-url" style={{ minWidth: 260, padding: 8 }} />
-                    <Button onClick={addCreateUrl}>Add URL</Button>
+                    <button type="button" onClick={addCreateUrl} style={{ border: '1px solid #d1d5db', background: '#fff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>Add URL</button>
                     <input type="file" accept="image/*" multiple onChange={(e) => onCreateFiles(e.currentTarget.files)} />
                   </InlineStack>
                 </BlockStack>
               </Card>
               <label><Text as="span" variant="bodyMd">Submitted at (optional ISO date)</Text><input name="submitted_at" style={{ width: "100%", padding: 8, marginTop: 6 }} /></label>
-              <InlineStack align="end" gap="200"><Button onClick={() => setCreateOpen(false)}>Cancel</Button><Button submit variant="primary" loading={busy}>Save as draft</Button></InlineStack>
+              <InlineStack align="end" gap="200"><button type="button" onClick={() => setCreateOpen(false)} style={{ border: '1px solid #d1d5db', background: '#fff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>Cancel</button><Button submit variant="primary" loading={busy}>Save as draft</Button></InlineStack>
             </BlockStack>
           </Form>
         </Modal.Section>
